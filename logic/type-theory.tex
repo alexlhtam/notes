@@ -1,0 +1,413 @@
+\documentclass[a4paper, 11pt]{article}
+
+\usepackage[margin=3cm]{geometry} 
+\usepackage{amsthm, amsmath, amssymb}
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
+\newtheorem{example}[definition]{Example}
+\newtheorem{theorem}[definition]{Theorem}
+\newtheorem{lemma}[definition]{Lemma}
+\newtheorem{prop}[definition]{Proposition}
+
+\let\olditemize\itemize
+\renewcommand{\itemize}{\olditemize\setlength{\itemsep}{0pt}\setlength{\parsep}{0pt}}
+\let\oldenumerate\enumerate
+\renewcommand{\enumerate}{\oldenumerate\setlength{\itemsep}{0pt}\setlength{\parsep}{0pt}}
+
+
+\begin{document}
+
+\section{Combinators}
+
+\subsection{Terms and Reduction}
+
+A type checker does not care what our function computes, only what it \textit{takes} and what it \textit{returns};
+\\ It ignores expression values, library function names, keywords, numbers - all is stripped away and very little is left.
+
+\begin{definition}[terms, definitions, combinations]
+    Fix two \textit{constants}, \textbf{K} and \textbf{S}, and a stock of \textit{variables $x, y, z, f, g, \dots$}
+    \begin{enumerate}
+        \item Each constant, \textbf{K} and \textbf{S}, is a term
+        \item Each variable $x$ is a term.
+        \item If \textit{M} and \textit{N} are terms, then $M \, N$ is a term: the \textit{application} of \textit{M} to \textit{N}
+        \item Nothing else is a term. 
+    \end{enumerate} 
+
+    A \textit{definition} is an equation: $$f \, x_1 \, \dots \, x_n \, := \, M,$$ where $f$ is a new name, $x_1, \dots, x_n$ are distinct variables, and $M$ is a term built from constants, names defined earlier, and the variables $x_1, \dots, x_n$ alone. Once defined, the name $f$ may be used as a term.\\
+    
+    The symbol $:=$ means ``is defined to be'', and is not equal to the $=$ in standard arithmetic. In this course, it means ``I am naming this'', and claims nothing else.
+    The last clause of the definition of a term is what ``inductively'' means, or in one line, with $M$ and $N$ standing for terms already built: $$M, N ::= K \, |  \, S \, | \, x \, | \, M \, N$$ Applications group to the left: $f \, x \, y$ is really $(f \, x) \, y$, a function of two arguments taking them one at a time; \\
+    Brackets are written only where the grouping is \textbf{to the right}, as in $f \,(g \, x)$; \\
+    In Haskell, the term language is \texttt{data Term = K | S | Var String | App Term Term}, one constructor per clause.\\
+
+    A term is \textit{closed} if no variable occurs in it, and a closed term is called a \textit{combinator}: in a closed term, there is nothing left to supply; \\
+    So, \textbf{S K K} and \textbf{K (S K)} are both combinators; \\A term with variables in it, such as $f \, (g \, x)$ or $\textbf{S} \, x \, \textbf{K}$, is a \textit{fragment}, it says what to do \textit{once} its variables are given, and until they are given there is nothing to run.
+\end{definition}
+\newpage
+\begin{example}[definitions we have already written]
+    Three definitions in the sense of Definition 1.1:
+    $$twice \, f \, x:= f(f \,x), \quad comp \, f \, g \, x := f(g \, x), \quad flip \, f \, x \, y := f \, y \, x$$
+    In Haskell, they are: \\ \texttt{twice f x = f (f x)},  \texttt{comp f g x = f (g x)}, and \texttt{flip f x y = f y x}; \\
+    in Python, three \texttt{def}s;
+    in Javascript, \texttt{const twice = f => x => f(f(x))} and its two equivalents.
+
+    What a definition may \textit{not} do is reach outside itself. The RHS may use the two constants, parameters, and names defined earlier and nothing else. \\
+    Therefore, $flip \, f \, x \, y := f \, y \, x$ is a definition, but $bad \, f \, x := f \, (g \, x)$ is not, since $g$ is neither a parameter nor a name defined earlier;
+    and neither is is $bad \, f \, f := f$, whose parameters are not distinct.
+
+    A definition is a rule for rewriting: wherever $f$ stands next to $n$ arguments, the LHS may be replaced with the right, and arguments written into parameters.
+\end{example}
+
+\begin{definition}[running]
+    A step rewrites a term in one of three ways:
+    \begin{align*}
+        \textbf{K} \, M \, N &\rightsquigarrow M, \\
+        \textbf{S} \, M \, N \, P &\rightsquigarrow M \, P \, (N \, P), \\
+        f \, M_1 \, \dots \, M_n &\rightsquigarrow M \text{ with } M_i \text{ in place of each } x_i
+    \end{align*}
+    the third whenever $f \, x_1 \dots \, x_n := M$ is a definition. The part rewritten may sit anywhere inside a larger term. \\
+    A term which no step can be taken is in \textit{normal form}. \\
+    To run a term is to take steps until normal form $M \rightsquigarrow^* N: \, N$ is reachable from $M$, zero steps included.
+
+    \textbf{K} is the function that keeps its first argument and drops the second: $$\textbf{K} \, M \, N \rightsquigarrow M$$
+    \textbf{S} is the function that hands its third argument to both others and applies the results: $$\textbf{S} \, M \, N \, P \rightsquigarrow M \, P \, (N \, P)$$
+    
+    We can see why two constants of this kind is enough. All a variable does is get used once, many times, or not at all. The two terms \textbf{K} and \textbf{S} are Schönfinkel's basic combinators, terms and rewrite rules make a combinatory algebra.
+\end{definition}
+
+\begin{theorem}[two constants suffice; on loan]
+    \textit{Every definition by equations can be replaced by a combinator in \textbf{K} or \textbf{S} alone that runs the same way on every argument; and the functions on numerals that such combinators compute are exactly the functions a Turing machine computes.}
+    
+    This says that combinators \textbf{are} programs. We prove in the next few examples.
+\end{theorem}
+
+\newpage
+
+\begin{example}[the identity, and composition]
+    Define the function that returns its arguments unchanged is \textbf{not} one of the two constants, but it is in the language. Define $$I := \textbf{S K K},$$ a definition with no parameters, and run it on an arbitrary argument $x$
+    \begin{alignat*}{2}
+        \textbf{S}\,\textbf{K}\,\textbf{K}\,x
+        &\rightsquigarrow \textbf{K}\,x\,(\textbf{K}\,x) &\qquad& \text{\textbf{S} step} \\
+        &\rightsquigarrow x  && \text{\textbf{K} step}
+    \end{alignat*}
+    Whatever $x$ is, \textbf{I} runs to $x$. \\
+    The \textit{comp} of Example 1.2 can be written from the constants alone too. \\
+    Let \textbf{B} := \textbf{S (K S) K} and run it on three arguments:
+    \begin{alignat*}{2}
+        \textbf{S}\,(\textbf{K}\,\textbf{S})\,\textbf{K}\,f\,g\,x
+        &\rightsquigarrow \textbf{K}\,\textbf{S}\,f\,(\textbf{K}\,f)\,g\,x &\qquad& \text{\textbf{S} step} \\
+        &\rightsquigarrow \textbf{S}\,(\textbf{K}\,f)\,g\,x && \text{\textbf{K} step} \\
+        &\rightsquigarrow \textbf{K}\,f\,x\,(g\,x) && \text{\textbf{S} step} \\
+        &\rightsquigarrow f\,(g\,x) && \text{\textbf{K} step}
+    \end{alignat*}
+    Four steps, and we get the \textit{comp} we wrote in Haskell, without a single parameter.
+
+    To watch a definition run we want something visible, so we allow the integers $0, 1, 2, \dots$ and the operator $+$ as ready-made constants, with the obvious step $m + n \rightsquigarrow $ the sum. They are not terms of Definition 1.1, and the debt is paid at the end of this section.
+    \begin{alignat*}{2}
+        \mathit{twice}\,\mathit{inc}\,0
+        &\rightsquigarrow \mathit{inc}\,(\mathit{inc}\,0) &\qquad& \text{definition of } \mathit{twice} \\
+        &\rightsquigarrow \mathit{inc}\,(0+1) && \text{definition of } \mathit{inc}\text{, inner} \\
+        &\rightsquigarrow \mathit{inc}\,1 && 0+1 \\
+        &\rightsquigarrow 1+1 && \text{definition of } \mathit{inc} \\
+        &\rightsquigarrow 2 && 1+1
+    \end{alignat*}
+    That is all a function call does: replace the LHS by the RHS. 
+\end{example}
+
+\begin{example}[booleans]
+    A boolean is a choice between two things, so let \textit{true} be the function that keeps the first of two args, and \textit{false} the one that keeps the second.
+    $$
+    \textit{true} := \textbf{K}, \qquad \textit{false} := \textbf{K} \,\textbf{I}
+    $$
+    With that choice, \texttt{if b then M else N} is simply \textit{b M N}: the boolean applied to the two branches. Run both cases:
+    \begin{alignat*}{2}
+        \mathit{true} \,M \,N = \textbf{K} M N &\rightsquigarrow M &\qquad&\text{keep the first} \\
+        \mathit{false} \,M \,N = \textbf{K} \,\textbf{I} \,M \,N &\rightsquigarrow \textbf{I} \,N &&\textbf{K} \text{ keeps } \textbf{I} \text{, drops } M \\
+        &\rightsquigarrow^* N && \text{Example 1.5}
+    \end{alignat*}
+    There is no \texttt{if} in the language, none is needed: the test chooses the branch by what it does with its two arguments. The boolean \textit{is} the conditional.
+\end{example}
+
+\newpage
+
+\begin{example}[numerals, and addition]
+    A number $n$ is ``do it $n$ times'': a function that takes an $f$ and an $x$ and applies $f$ to $x$ that many times. One definition for each $n$,
+    $$
+    \bar{0} \,f \,x := x, \quad \bar{1} \,f \,x := f \,x, \quad\bar{2} \,f \,x := f (f \,x), \quad\bar{3} \,f \,x := f(f (f \,x)), \quad\dots
+    $$
+    To add one to a number, apply $f$ once more; to add two numbers, apply $f$ the first number of times to the result of applying it the second number of times:
+    $$
+    \mathit{succ} \, n \,f \,x := f(n \, f \, x), \qquad \textit{add} \, m\, n \,f \,x := m \, f \, (n \,f \,x).
+    $$
+    Here is \textit{add} at work, run on \textit{inc} and $0$ so that a number comes out, one step per line, with the definition unfolded shown on the right:
+    Run $\mathit{add}\,\overline{2}\,\overline{1}$ on $\mathit{inc}$ and $0$.
+    \begin{alignat*}{2}
+        \mathit{add}\,\overline{2}\,\overline{1}\,\mathit{inc}\,0
+        &\rightsquigarrow \overline{2}\,\mathit{inc}\,(\overline{1}\,\mathit{inc}\,0) &\qquad& \mathit{add} \\
+        &\rightsquigarrow \mathit{inc}\,(\mathit{inc}\,(\overline{1}\,\mathit{inc}\,0)) && \overline{2} \\
+        &\rightsquigarrow \mathit{inc}\,(\mathit{inc}\,(\mathit{inc}\,0)) && \overline{1} \\
+        &\rightsquigarrow \mathit{inc}\,(\mathit{inc}\,(0+1)) && \mathit{inc}\text{, innermost} \\
+        &\rightsquigarrow \mathit{inc}\,(\mathit{inc}\,1) \rightsquigarrow \mathit{inc}\,(1+1) && 0+1;\ \mathit{inc} \\
+        &\rightsquigarrow \mathit{inc}\,2 \rightsquigarrow 2+1 \rightsquigarrow 3 && \dots
+    \end{alignat*}
+    The answer is $3$, exactly what $\bar{3}$ computes. An exercise: $$\text{let }\mathit{mult} \,m \,n \,f := m (n \,f).$$ Run $\mathit{mult} \,\bar{2} \,\bar{3} \,\mathit{inc} \,0$, one step per line, naming each. Then, what does \textit{mult} compute in general? Why three parameters, where \textit{add} had four?
+    \begin{alignat*}{2}
+        \mathit{mult}\,\bar{2}\,\bar{3}\,\mathit{inc}\,0
+        &\rightsquigarrow \bar{2}\,(\bar{3}\,\mathit{inc})\,0 &\qquad& \mathit{mult} \\
+        &\rightsquigarrow \bar{3}\,\mathit{inc}\,(\bar{3}\,\mathit{inc}\,0) && \bar{2} \\
+        &\rightsquigarrow \bar{3}\,\mathit{inc}\,(\mathit{inc}\,(\mathit{inc}\,(\mathit{inc}\,0))) && \bar{3} \\
+        &\rightsquigarrow \mathit{inc}\,(\mathit{inc}\,(\mathit{inc}\,(\mathit{inc}\,(\mathit{inc}\,(\mathit{inc}\,0))))) && \bar{3}
+    \end{alignat*}
+    Six unfoldings of \textit{inc} gives $6$. In general, $f$ applied $n$ times, $m$ times over, is $mn$ times. In the addition run, in line 3, there were three steps available since any of the three \textit{inc}s could have been unfolded. The innermost was selected: another choice would \textbf{not} have given another answer. (See Theorem 1.8)
+\end{example}
+
+\begin{theorem}[The Order of Steps]
+    Church-Rosser (1936): If a term runs to a normal form, it runs to only one.
+\end{theorem}
+
+\subsubsection*{Summary of Section 1.1}
+\begin{itemize}
+    \item A program is a finite list of equations and a term to evaluate
+    \item To run it is to replace LHS by the RHS until none is left
+    \item No store. No stack. No instruction pointer. No order of evaluation to settle.
+    \item The conditional, the numbers, addition: built in front of us, out of nothing
+\end{itemize}
+
+\newpage
+
+\subsection{Non-termination}
+Nothing in Definition 1.1 says what may be applied to what. A boolean is a function and a number is a function, so a function may be applied to either; and a function may be applied to itself. The definition $$\omega x := x x$$ is legal: its RHS uses only its one parameter. So $\omega$ is the function that applies its argument to itself. Now, we apply that $\omega$ to itself, creating \textbf{the Monster}: $$ \Omega := \omega \omega,$$ and run it:
+There is one step available, the definition of $\omega$ with $\omega$ written for $x$, and it gives $$\omega\omega \rightsquigarrow \omega\omega \rightsquigarrow \omega\omega \rightsquigarrow \dots$$
+The step returns the term where it started. So there is a second step, and it returns it again, and no number of step ever finishes. The Monster is a nod to a function exhibited in 1872 by Weierstrass, continuous everywhere and differentiable nowhere: a perfectly legal construction that nobody who wrote the definitions had in mind. 
+
+Be exact about what that costs. $\Omega$ runs and there is no output, no error and no crash. The machine is working, and will still be working tomorrow. The failure here is not that the program returns the wrong answer - a wrong answer can be read and argued with. This one returned nothing and took the machine with it.
+
+Nor is the loop a matter of notation. Compiled into constants, $\omega$ is \textbf{S I I}:
+\begin{alignat*}{2}
+    \textbf{S}\,\textbf{I}\,\textbf{I}\,x
+    &\rightsquigarrow \textbf{I}\,x\,(\textbf{I}\,x) &\qquad& \text{\textbf{S} step} \\
+    &\rightsquigarrow^* x\,(\textbf{I}\,x) && \textbf{I}\,x \rightsquigarrow^* x \\
+    &\rightsquigarrow^* x\,x && \textbf{I}\,x \rightsquigarrow^* x
+\end{alignat*} 
+so $\Omega$ is \textbf{S I I}(\textbf{S I I}): several steps to come back to itself, instead of one. Compiling changes nothing. The loop is in the \textbf{shape}, not the notation.
+
+Nor need a loop come back to where it started. Apply to itself a function that uses its argument three times, 
+$$\omega_3\,x := x\,x\,x, \qquad \Omega_3 := \omega_3\,\omega_3$$
+and run it: $\omega_3\,\omega_3 \rightsquigarrow \omega_3\,\omega_3\,\omega_3 \rightsquigarrow \omega_3\,\omega_3\,\omega_3\,\omega_3 \rightsquigarrow \omega_3\,\omega_3\,\omega_3\,\omega_3\,\omega_3 \rightsquigarrow \cdots$ The term grows at every step and never repeats. So, a loop need not repeat itself, and a checker that watches for a repeat cannot catch them all.
+
+Whether a run stops can even depend on the number of steps, which Theorem 1.8 seemed to make harmless. Consider $$\mathbf{K} \,x\,\Omega,$$
+in which two steps are available. The outer one, the \textbf{K} step, gives $x$ back at once: $$\mathbf{K} \,x\,\Omega \rightsquigarrow x$$ a normal form, and the run stops. The inner one, inside $\Omega$, gives $\mathbf{K} \,x\,\Omega$ back, and taking it for ever never stops. There is no contradiction. The theorem says that a term has \textit{at most one} normal form, and that no steps puts it out of reach --- after the inner step, the outer one is still there to be taken --- but that every order of steps reaches it.
+
+Real languages differ in exactly this choice. A \textit{lazy} language such as Haskell takes the outer step, and \texttt{const 1 undefined} is $1$. Alternatively, a \textit{strict} language such as Python evaluates arguments first, so it takes the inner step: with \texttt{K = lambda a: lambda b: a} and \texttt{w = lambda x: x(x)}, the call \texttt{K(1)(w(w))} never returns \texttt{1}, and Python gives up only when the stack runs out. 
+
+Now look at the size of the thing. $\Omega$ is four symbols. It is not the end of a long chain of subtle mistakes but rather two sensible decisions in a row. Nothing in the three clauses of Definition 1.1 objected, and nothing in them could: they say strings are terms, and $\omega\omega$ is a perfectly valid string. The one rule of Definition 1.3 did not object either. It had a step available, and it took it.
+
+So what can a checker achieve? A checker that catches \textit{every} program that fails to stop \textbf{does not exist}, but we cannot yet prove this. What we can build is a checker that refuses a class of programs we can \textbf{describe exactly}, with $\Omega$ inside it.
+
+\subsection{Types and typings}
+What went wrong is not hard to name. The function $\omega$ takes an argument and returns a result, and nothing recorded \textit{what kind} of result it gave back. Therefore, nothing was in a position to notice that when $\omega$ was handed $\omega$, it had been handed something it was never built to take. 
+So here is the main idea, and the rest of this chapter is its execution. Church's idea (1940): label every term with what it takes and returns; allow an application only when the argument's label is the one the function asks for; and check, before anything runs, that the labels fit together throughout. 
+
+Read a label $A \rightarrow B$ as a \textit{contract}: give me an $A$, and I shall return a $B$. A contract can be checked without being honoured (i.e. without running anything), because it speaks of kinds and not of values, and a verdict in advanced is exactly what we want.
+
+Three things  must be settled before that is a checker rather than a hope:
+\begin{enumerate}
+    \item What the labels are;
+    \item What it means for a term to carry one;
+    \item Which labellings are allowed.
+\end{enumerate}
+The labels are called \textit{types}, and they are built by two clauses, as a term was built by three.
+
+\begin{definition}[types]
+   Fix a stock of \textit{basic types}, such as \textit{Int}, \textit{String}, and \textit{Bool}; we write $p$, $q$, $r$, $\dots$ for basic types when it does not matter which. The \textit{types} are defined inductively:
+   \begin{enumerate}
+       \item Every basic type $p$ is a type.
+       \item If $A$ and $B$ are types, then $A \rightarrow B$ is a type: the \textit{function type}, the type of functions that take an $A$ and return a $B$.
+       \item Nothing else is a type. 
+   \end{enumerate}
+\end{definition}
+
+In one line, we have $A, B ::= p \, |\, A \rightarrow B$. So $\mathit{Int} \rightarrow \mathit{Bool}$ is a test on integers, $(\textit{Int} \rightarrow \textit{Int}) \rightarrow \textit{Int}$ is the type of something that takes a function, and $(p \rightarrow q) \rightarrow p$ is a type too.
+
+We have written such types. In Java, \texttt{Function<A, B>} is $A \rightarrow B$. A method \texttt{static int square(int n)} has type $\textit{Int} \rightarrow \textit{Int}$, and the addition \texttt{m -> n -> m + n}, which takes its arguments one at a time, has type \texttt{Function<Integer, Function<Integer, Integer>>}, which is $\textit{Int} \rightarrow \textit{Int} \rightarrow \textit{Int}$, nested to the right exactly as our arrow is.
+
+For the arrow groups to the right: $A \rightarrow B \rightarrow C$ is $A \rightarrow (B \rightarrow C)$, a function of two arguments taking them one at a time, just as application grouped to the left. Every real checker has more --- records, lists, generics --- and every one of them has this.
+
+We have the types; now we must say how to determine the type of a term, written $\vdash t : T$ and read ``$t$ has type $T$''. But a term like $f(f\,x)$ has variables in it, and its type depends on theirs, so the claim has to carry a list of declarations of them, written $\Gamma$.
+
+\begin{definition}[context, judgement]
+    A \textit{context} $\Gamma$ is a finite list $$x_1 : A_1, \dots, x_n:A_n$$ pairing each variable in scope with a type, no variable listed twice; the empty list counts, and we write $\Gamma, x: A$ for $\Gamma$ with the pair $x:A$ added at the end. The checker's basic claim is a \textit{judgement} $$\Gamma \vdash M:A,$$
+    read ``$M$ has type $A$ when its variables have the types $\Gamma$ gives them''. When $\Gamma$ is empty we simply write $\vdash M : A$, and then $M$ is a program with type $A$ outright. 
+    
+\end{definition}
+
+\begin{definition}[typing rules]
+The same three clauses that built terms in Definition 1.1
+\begin{alignat*}{2}
+&(\text{K})\quad \textbf{K} : A \rightarrow B \rightarrow A &\qquad& (1.1) \\
+&(\text{S})\quad \textbf{S} : (A \rightarrow B \rightarrow C) \rightarrow (A \rightarrow B) \rightarrow A \rightarrow C &\qquad& (1.2)
+\end{alignat*}
+where $A$, $B$ and $C$ stand for arbitrary types \\
+In addition to that we have one look-up (variables) 
+\[\text{(var)}\quad x:T, \text{ if } x:T \text{ is declared in } \Gamma\]
+and one match (applications)
+\[\text{(app)} \quad M:A \rightarrow B \text{ and } N:A \text{ give } M \, N:B\]
+Two schemas, one look-up, one match: That is the whole checker.
+\end{definition}
+
+The types of \textbf{K} and \textbf{S}: Each schema is just what the combinator does, written as a contract. \textbf{K} keeps:
+\[\textbf{K} \, M \, N \rightsquigarrow M\] Give it an $A$, then a $B$, it \textbf{keeps} the $A$ and drops the $B$, so what comes out is an \\ $A$: $\textbf{K} : A \rightarrow B \rightarrow A$. Alternatively, \textbf{S} shares: \[\textbf{S} \, M \, N \, P \rightsquigarrow M \, P \, (N \, P)\] It shares $P$ with both. If $P:A$, then $N$ must turn an $A$ into $B$, and $M$ must take an $A$ and that $B$ to a $C$:
+$\textbf{S}: (A\rightarrow B \rightarrow C) \rightarrow (A \rightarrow B) \rightarrow A \rightarrow C$. Read the type off the rule: what goes in, what comes out.
+
+Instances of a schema: (\textbf{K}) is one line, but gives \textbf{K} a type for every choice of $A$, $B$: 
+\begin{center}
+$\begin{array}{lll}
+    A & B & A \,\, \text{type of } \textbf{K} \\
+    \hline
+    \mathit{Int} & \mathit{Bool} & \mathit{Int} \to \mathit{Bool} \to \mathit{Int} \\
+    \mathit{Bool} & \mathit{Int} & \mathit{Bool} \to \mathit{Int} \to \mathit{Bool} \\
+    \mathit{Int} \to \mathit{Int} & \mathit{String} & (\mathit{Int} \to \mathit{Int}) \to \mathit{String} \to (\mathit{Int} \to \mathit{Int})
+\end{array}$
+\end{center}
+
+Each one is of a typing \textbf{K}. A schema is what Java calls a generic
+
+\newpage
+\begin{definition}[a typing]
+    A typing of $\Gamma \vdash t:T$ is a finite list of judgements, all with the \textit{same} context $\Gamma$,
+    \[\Gamma \vdash t_1 : T_1, \dots, \Gamma \vdash t_n:T_n\]
+ending in $\Gamma \vdash t:T$, each line justified by (\textbf{K}), (\textbf{S}), (var) or (app) from the earlier lines. Nothing else is allowed. To write justifications, ``(app) \textit{i}, \textit{j}'': line $i$ is the function, line $j$ the argument. After (\textbf{K}) or (\textbf{S}): in brackets, the types put for $A$, $B$, $C$.
+\end{definition} 
+
+\begin{example}[the empty context]
+Recall: \texttt{if b then M else N} is just $b \, M \, N$, and $true := \textbf{K}$. So type $\textbf{K} \, 3 \, 4$. No variables, so nothing to declare: $\Gamma$ is empty.
+
+\begin{center}
+\begin{tabular}{r@{\quad}l@{\hspace{3em}}l}
+    \multicolumn{1}{l}{\textsc{line}} & \textsc{judgement} & \textsc{justification} \\[4pt]
+    1. & $\vdash \textbf{K} : \mathit{Int} \to \mathit{Int} \to \mathit{Int}$ & (K) $[\mathit{Int},\ \mathit{Int}]$ \\
+    2. & $\vdash 3 : \mathit{Int}$ & ready-made \\
+    3. & $\vdash \textbf{K}\,3 : \mathit{Int} \to \mathit{Int}$ & (app) 1, 2 \\
+    4. & $\vdash 4 : \mathit{Int}$ & ready-made \\
+    5. & $\vdash \textbf{K}\,3\,4 : \mathit{Int}$ & (app) 3, 4
+\end{tabular}
+\end{center}
+An Int, and we know it before anything runs. If we swap 4 for \texttt{"hello"}: choose $B := \textit{String}$ in line 1, and $\textbf{K} \, 3$ \texttt{"hello"}:\textit{Int} too. \textbf{K} does not care what it drops.
+\end{example}
+
+\begin{example}[a non-empty context]
+$\textit{twice} \,f \,x := f(f \,x)$. To type its body, declare its parameters: $\Gamma = f : \textit{Int} \rightarrow \textit{Int}, \, x : \textit{Int}$
+
+\begin{center}
+\begin{tabular}{r@{\quad}l@{\hspace{3em}}l}
+    \multicolumn{1}{l}{\textsc{line}} & \textsc{judgement} & \textsc{justification} \\[4pt]
+    1. & $\Gamma \vdash f : \mathit{Int} \to \mathit{Int}$ & (var) \\
+    2. & $\Gamma \vdash x : \mathit{Int}$ & (var) \\
+    3. & $\Gamma \vdash f\,x : \mathit{Int}$ & (app) 1, 2 \\
+    4. & $\Gamma \vdash f\,(f\,x) : \mathit{Int}$ & (app) 1, 3
+\end{tabular}
+\end{center}
+$\Gamma$ is the parameter list. Line 1 is cited twice, which is allowed. There is no case for the name twice itself, Chapter 2 deals with that.
+\end{example}
+
+\begin{example}[the identity, typed]
+Type $\textbf{I} = \textbf{S K K}$ at $A \to A$. Write $P$ for $A \to A$
+\begin{center}
+\begin{tabular}{r@{\quad}l@{\hspace{3em}}l}
+    \multicolumn{1}{l}{\textsc{line}} & \textsc{judgement} & \textsc{justification} \\[4pt]
+    1. & $\vdash \textbf{S} : (A \to P \to A) \to (A \to P) \to P$ & (S) $[A,\ P,\ A]$ \\
+    2. & $\vdash \textbf{K} : A \to P \to A$ & (K) $[A,\ P]$ \\
+    3. & $\vdash \textbf{S}\,\textbf{K} : (A \to P) \to P$ & (app) 1, 2 \\
+    4. & $\vdash \textbf{K} : A \to P$ & (K) $[A,\ A]$ \\
+    5. & $\vdash \textbf{S}\,\textbf{K}\,\textbf{K} : A \to A$ & (app) 3, 4
+\end{tabular}
+\end{center}
+Line 1 is the one nobody writes unprompted: it is found backwards from the goal. The search takes a sentence; the checks take none.
+
+Work backwards from the goal. Leave the letters of $(S)$ unknown, and the two \textbf{K}s decide them.
+\begin{enumerate}
+    \item Goal: $\textbf{S} \, \textbf{K} \, \textbf{K}: A \to A$
+    \item (S) gives $\textbf{S}:(X\to Y \to Z) \to (X \to Y) \to X \to Z$, so $\textbf{S} \, \textbf{K} \, \textbf{K}: X \to Z$. Hence $X=A$ and $Z=A$.
+    \item The first \textbf{K} must have type $A \to Y \to A$. That has the shape $V \to W \to V$ forces $Y=W \to A$, for some $W$.
+    \item The second \textbf{K} must have type $A \to Y$. The shape $V \to W \to V$ forces $Y = W \to A$, for some $W$
+    \item Any $W$ will do. Choose $W = A$: then $Y = A \to A$, which is $P$. That is line 1.
+\end{enumerate}
+\end{example}
+
+\begin{example}[The red line]
+The line we walked in to lecture: \texttt{total = 3 + "hello"}, with \texttt{"hello"} underlined in red. expected Int, got String. Without types, nothing stops it: inside the machine $3$ and \texttt{"hello"} are both just bits, and the processor would add them.
+\begin{center}
+\begin{tabular}{r@{\quad}l@{\hspace{3em}}l}
+    \multicolumn{1}{l}{\textsc{line}} & \textsc{judgement} & \textsc{justification} \\[4pt]
+    1. & $\vdash +: \text{Int} \to \text{Int} \to \text{Int}$ & \text{ready-made}\\
+    2. & $\vdash 3: \text{Int}$ & \text{ready-made} \\
+    3. & $\vdash +3: \text{Int} \to \text{Int}$ & \text{(app) 1, 2} \\
+    4. & $\vdash \texttt{"hello"}: \text{String}$ &\text{ready-made} \\
+    5. & (app) 3, 4? wants \textit{Int}, gets \textit{String}: \textbf{no match}
+\end{tabular}
+\end{center}
+No rule applies, so no typing exists; refused, before anything runs. That is the whole content of the editor, minus the decorations.
+
+Java says the same thing in its own words. Java's own $+$ would just turn \texttt{3} and \texttt{"hello"} into the string \texttt{"3hello"}, so use an addition typed like ours, $\text{Int} \to \text{Int} \to \text{Int}$
+\qquad \texttt{Function<Integer, Function<Integer, Integer>> plus = m -> n -> m + n; \\ int total = plus.apply(3).apply("hello")} 
+and the compiler gives an error.
+\end{example}
+
+\begin{theorem}[subject reduction]
+    If $\Gamma \vdash M:A$ and $M \rightsquigarrow N$ by a \textbf{K} step, an \textbf{S} step or a ready-made step, then $\Gamma \vdash N:A$
+    
+    The \textbf{K} case: Suppose $\textbf{K} \, P \, Q : A$ and $\textbf{K} \, P \, Q \rightsquigarrow P$. Why is $P:A$? Read the typing backward twice.
+    \begin{enumerate}
+        \item $\textbf{K} \, P \, Q : A$ came by (app) from $\textbf{K} \, P : B \to A$ and $Q:B$.
+        \item $\textbf{K} \, P : B \to A$ came by (app) from $\textbf{K} : C \to B \to A$ and $P : C$.
+        \item (K) gives \textbf{K} only types $V \to W \to V$, so $C = A$.
+    \end{enumerate}
+   
+\end{theorem}
+
+\begin{lemma}[the types of \textbf{S} \textbf{K} \textbf{K}]
+    The goal: show that the Monster has \textbf{no} type. Then the checker refuses it, and the loop never runs. There are infinitely many types, we cannot try them one by one. Instead, we read a typing \textbf{backwards}. Each kind of term has exactly one rule that could have produced it, so any typing of a term is forced to have a certain shape.
+    \[\text{If } \Gamma \vdash \textbf{S K K}:T \text{ then } T \text{ is } U \to U \text{ for some type } U\]
+    The last line came by (app), so four earlier lines exist:
+    \[\textbf{S}: A'' \to A' \to T, \quad \textbf{K}: A'', \textbf{K}:A', \text{ and } \textbf{S K}: A' \to T \]
+    \begin{enumerate}
+        \item (S): $A'' = X \to Y \to Z, A' = X \to Y, T = X \to Z$
+        \item (K) has shape $V \to W \to V$; $A''$ has it, so $Z = X$
+        \item $A' = X \to Y$ has it too, so $Y = W \to X$.
+    \end{enumerate}
+    Hence, $T = X \to Z = X \to X$. The backwards reading is the shape of every proof in Chapter 2.
+\end{lemma} 
+
+\newpage
+
+\begin{prop}[the Monster has no type]
+    Recall that $\omega = \textbf{S I I}$ and $\Omega = \omega\omega = \textbf{S I I}(\textbf{S I I})$. To show that the Monster has no type, it is enough to show that $\omega=\textbf{S I I}$ has none: (app) needs typing of both $M$ and $N$. No type for $M$, no type for $M \, N$. 
+    There is no context $\Gamma$ and no type $T$ with $\Gamma \vdash \textbf{S I I} : T$. Consequently, $\Omega$ has no typing.
+\end{prop}
+
+Proof of Proposition 1.19: Suppose $\Gamma \vdash \textbf{S I I }:T$, and read the typing backwards.
+\begin{enumerate}
+    \item The last line is (app), so there are typings of \textbf{S I} and of \textbf{I}; and \textbf{S I} comes by (app) from \textbf{S} and \textbf{I}
+    \item (S) then wants the first \textbf{I}: $X \to Y \to Z$ and the second \textbf{I}: $X \to Y$.
+    \item Lemma 1.18: each has the shape $U \to U$. So $X = Y \to Z$ and $X = Y$.
+\end{enumerate}
+\[Y = Y \to Z\]
+\textbf{Remember this equation}. $Y \to Z$ is strictly longer than $Y$, and equal types have equal length. No type is a proper part of itself. The parameter was the problem, and compiling it away did not remove it.
+
+Proposition 1.16 refuses one looping program: the Monster. But there are infinitely many programs. Could a cleverer one loop forever and still get a type? The claim: \textbf{no typed program loops}. The question: do typed programs always run to a \textbf{normal form}? (Definition 1.3)
+
+\begin{theorem}[normalisation]
+   Every program with a typing runs to a normal form. A typed program cannot loop: if the checker says yes, the run finishes. With Theorem 1.17, a yes means no step goes wrong and the run ends.
+\end{theorem}
+
+
+\subsection{Summary of Chapter 1}
+\begin{itemize}
+    \item Under every language we use is a combinatory algebra: two constants and application, run by two rewrite rules. Unpoliced, it computes everything, including a program that never stops.
+    \item A type is a contract, a basic type or $A \to B$. The checker allows an application only when the contract is met.
+    \item Its certificate is a typing: a finite list of judgements $\Gamma \vdash M:A$, each justified by (\textbf{K}), (\textbf{S}), (var), or (app).
+    \item Its \textit{no} is (app) failing to match. Its \textit{yes} names no input, so covers them all, and by subject reduction still holds as the program runs.
+\end{itemize}
+
+\end{document}
