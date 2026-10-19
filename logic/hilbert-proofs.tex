@@ -1,0 +1,155 @@
+\documentclass[a4paper, 11pt]{article}
+
+\usepackage[margin=3cm]{geometry} 
+\usepackage{amsthm, amsmath, amssymb}
+\usepackage{array}
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
+\newtheorem{example}[definition]{Example}
+\newtheorem{theorem}[definition]{Theorem}
+\newtheorem{lemma}[definition]{Lemma}
+\newtheorem{prop}[definition]{Proposition}
+
+\let\olditemize\itemize
+\renewcommand{\itemize}{\olditemize\setlength{\itemsep}{0pt}\setlength{\parsep}{0pt}}
+\let\oldenumerate\enumerate
+\renewcommand{\enumerate}{\oldenumerate\setlength{\itemsep}{0pt}\setlength{\parsep}{0pt}}
+
+
+\begin{document}
+\section{Hilbert Proofs}
+
+\subsection{Formulas, axioms, and proofs}
+\begin{definition}[formulas]
+    Fix a stock of letters $p, q, r, \dots$. The formulas are defined inductively:
+    \begin{enumerate}
+        \item Every letter is a formula
+        \item If $\varphi$ and $\psi$ are formulas, so is $\varphi \to \psi$, read "if $\varphi$, then $\psi$.
+        \item Nothing else is a formula
+    \end{enumerate}
+    In one line: \[\varphi, \psi \quad := \quad p \quad | \quad \varphi \to \psi\]
+    The arrows groups to the right: \[\varphi \to \psi \to \chi \text{ is } \varphi \to (\psi \to \chi)\]
+    Small Greek letters stand for formulas, as capital Latin ones stood for types. Formulas have the same grammar as types; Section 2.2 says why.
+
+    What do we mean by ``if \dots, then \dots?'' At least this: whenever the \textit{if} parts holds, the \textit{then} part may be concluded. In symbols, \[\text{from } \varphi \to \psi \text{ and } \varphi, \text{ conclude } \psi\]
+    The rule's Latin name is \textit{modus ponens}, and it is the only move we make in this chapter.
+    The first shape: A truth is implied by anything: if $\varphi$ holds, then $\varphi$ holds whatever else, say $\psi$, does.\[\varphi \to \psi \to \varphi\]
+    The second shape: \textit{modus ponens} carried out under a hypothesis: if, given $\varphi$, we have $\psi \to \chi$, and given $\varphi$, we have $\psi$, then given $\varphi$, we have $\chi$. \[(\varphi \to \psi \to \chi) \to (\varphi \to \psi) \to \varphi \to \chi\]
+\end{definition}
+
+\begin{definition}[proof from hypotheses]
+    The \textit{axioms} are all instances of two schemas, where $\varphi$, $\chi$ and $\chi$ stand for arbitrary formulas: 
+    \begin{alignat*}{2}
+        &\text{(I)}\qquad  && \varphi \to \psi \to \varphi \\
+        &\text{(II)}\qquad && (\varphi \to \psi \to \chi) \to (\varphi \to \psi) \to \varphi \to \chi
+    \end{alignat*}
+    Let $\Gamma$ be a set of formulas, the hypotheses. A proof of $\varphi$ from $\Gamma$ is a finite sequence of formulas $\varphi_1, \dots, \varphi_n$ whose last line is $\varphi$, in which each line $\varphi_k$ is justified in one of three ways:
+    \begin{enumerate}
+        \item (\textit{axiom}) $\phi_k$ is an instance of (I) or (II);
+        \item (\textit{hypothesis}) is a member of $\Gamma$;
+        \item (\textit{modus ponens}) there are earlier lines $\varphi_i$ and $\varphi_j$, with $i, j < k$ such that $\varphi_i$ is the formula $\varphi_j \to \varphi_k$.
+    \end{enumerate}
+    No other kind of line is allowed.
+\end{definition}
+
+\newpage
+
+\begin{definition}[theorems]
+    If such a proof exists, we write \[\Gamma \vdash \varphi\] read ``$\varphi$ is provable from $\Gamma$''. A proof from $\Gamma$ does not know whether its hypotheses hold; it says what follows if they do.
+    When $\Gamma$ is empty the second clause never applies. We write $\vdash \varphi$ and call $\varphi$ a theorem: it holds by virtue of its logical structure alone, with nothing told.
+\end{definition}
+
+\begin{example}[is it an axiom?]
+Is each an instance of (I), (II), or neither?
+\begin{enumerate}
+    \item $p \to q \to r$: Neither. (I) needs the same formula at both ends.
+    \item $q \to (p \to p) \to q$: (I) with $\varphi := q$, $\psi := p \to p$
+    \item $(p \to q) \to (q \to r) \to p \to r$ Neither. It is what chaining two implications concludes, not an instance of a schema.
+    \item $(p \to p \to p) \to (p \to p) \to p \to p$ (II) with $\varphi := p$, $\psi := p$, $\chi := p$
+\end{enumerate}
+Checking a shape is a matter of comparing the pieces, no understanding required.
+\end{example}
+
+\begin{example}[$\vdash p \to p$]
+    \[
+        \begin{array}{r|l@{\qquad}l}
+        & \textit{no hypotheses} \\ \cline{2-2}
+        1 & (p \to (p \to p) \to p) \to (p \to (p \to p)) \to p \to p & \text{(II) } [p,\ p \to p,\ p] \\
+        2 & p \to (p \to p) \to p & \text{(I) } [p,\ p \to p] \\
+        3 & (p \to (p \to p)) \to p \to p & \text{MP } 1,\ 2 \\
+        4 & p \to (p \to p) & \text{(I) } [p,\ p] \\
+        5 & p \to p & \text{MP } 3,\ 4
+        \end{array}
+    \] 
+    Each line is trivial to check, but Line 1 is not trivial to find. The thinking runs backwards from the goal. That is how all proofs are found.
+    \begin{enumerate}
+        \item The goal $p \to p$ is not an axiom, so it comes by modus ponens: from some $\chi$ and $\chi \to (p \to p)$.
+        \item Could $\chi \to (p \to p)$ be an instance of (I)? Then $\chi$ would be $p$, and we would need a proof of $p$ on its own. There cannot be one: nothing in the system proves a bare letter. 
+        \item So try (II). Its last part, $\varphi \to \chi$, must be $p \to p$. That fixes $\varphi = \chi = p$ and leaves $\psi$ free.
+        \item The two premises are then $p \to (\psi \to p)$ and $p \to \psi$. Choose $\psi := p \to p$, and both are instances of (I).
+    \end{enumerate} 
+\end{example}
+
+\newpage
+
+\subsection{Proofs are programs}
+
+\begin{theorem}[Curry's correspondence]
+$\Gamma \vdash M:A$ for some term $M$ if  and only if $|\Gamma| \vdash A$
+
+\begin{enumerate}
+    \item (Erasure) Replace every line of a typing of $\Gamma \vdash M:A$ by its partner in the right-hand column. The result is a proof of A from $|\Gamma|$
+    \item (Decoration) Take a proof of $\varphi$ from some hypotheses, give each hypothesis a variable, and replace every line by its partner in the left-hand column, working downwards. The result is a typing of $\Gamma \vdash M: \varphi$ for some term $M$.
+\end{enumerate}
+All that needs checking is that each line's justification survives the change. Every line of a typing has the same context $\Gamma$, so take the four kinds of line in turn.
+\begin{enumerate}
+    \item A line by (K) has type $B \to C \to B$: erased, an instance of (I).
+    \item A line by (S) has type $(B \to C \to D) \to (B \to C) \to B \to D$: erased, an instance of (II)
+    \item A line by (var) has a type listed in $\Gamma$: erased, a member of $|\Gamma|$, a hypothesis.
+    \item A line by ``(app) $i, j$'' has type $C$, where line $i$ has type $B \to C$ and line $j$ has type $B$. Erased, ``MP $i, j$'' is a correct justification for $C$.
+\end{enumerate}
+It does not say that proofs \textit{resemble} programs, or that there is a useful analogy.
+\end{theorem}
+
+\subsection{More connectives: and, or, and not}
+
+\begin{definition}[formulas, extended]
+    Fix a stock of letters $p, q, r, \dots$, as before. The formulas are defined inductively:
+    \begin{enumerate}
+        \item every letter is a formula;
+        \item $\bot$ is a formula, read ``absurd'' or ``that cannot happen''
+        \item if $\varphi, \psi$ are formulas, so is $\varphi \to \psi$;
+        \item if $\varphi, \psi$ are formulas, so is $\varphi \land \psi$, ``$\varphi$ and $\psi$'';
+        \item if $\varphi, \psi$ are formulas, so is $\varphi \lor \psi$, ``$\varphi$ or $\psi$'';
+        \item nothing else is a formula.
+    \end{enumerate}
+    In one line: \[\varphi, \psi \quad ::= \quad p \quad |\quad \bot\quad  | \quad \varphi \to \psi \quad | \quad \varphi \land \psi \quad | \quad \varphi \lor \psi\]
+    $\neg \varphi$ abbreviates $\varphi \to \bot$, read ``not $\varphi$'': a short way of of writing an arrow into $\bot$.
+\end{definition}
+
+\newpage
+
+\begin{definition}[nine schemas]
+    The axioms are all instances of nine schemas, where $\varphi, \psi, \chi$ stand for arbitrary formulas.
+    \begin{center}
+    \begin{tabular}{l >{$}l<{$}}
+        \textsc{schema} & \text{\textsc{shape}} \\[2pt]
+        (I)              & \varphi \to \psi \to \varphi \\
+        (II)             & (\varphi \to \psi \to \chi) \to (\varphi \to \psi) \to \varphi \to \chi \\
+        (pair)           & \varphi \to \psi \to \varphi \land \psi \\
+        (fst), (snd)     & \varphi \land \psi \to \varphi,\ \ \varphi \land \psi \to \psi \\
+        (left), (right)  & \varphi \to \varphi \lor \psi,\ \ \psi \to \varphi \lor \psi \\
+        (either)         & (\varphi \to \chi) \to (\psi \to \chi) \to \varphi \lor \psi \to \chi \\
+        (absurd)         & \bot \to \varphi
+    \end{tabular}
+    \end{center}
+    The same three kind of line: a proof of $\varphi$ from $\Gamma$ is a box, as before, in which each line is
+    \begin{enumerate}
+        \item (\textit{axiom}) an instance of one of the nine schemas;
+        \item (\textit{hypothesis}) a member of $\Gamma$;
+        \item (\textit{modus ponens}) the $\varphi_k$ of earlier lines $\varphi_j \to \varphi_k$ and $\varphi_j$.
+    \end{enumerate}
+\end{definition}
+
+\end{document}
