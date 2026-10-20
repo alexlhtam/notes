@@ -150,6 +150,28 @@ It does not say that proofs \textit{resemble} programs, or that there is a usefu
         \item (\textit{hypothesis}) a member of $\Gamma$;
         \item (\textit{modus ponens}) the $\varphi_k$ of earlier lines $\varphi_j \to \varphi_k$ and $\varphi_j$.
     \end{enumerate}
+
+    \textbf{AND}: With $r$ ``Smith may publish'', $a$ ``Smith may edit the release notes''.
+    \begin{center}
+        \begin{tabular}{l >{$}l<{$} >{\ttfamily}l p{0.38\textwidth}}
+            \textsc{schema} & \text{\textsc{shape}} & \normalfont\textsc{haskell} & \textsc{for hughes} \\[4pt]
+            (pair) & \varphi \to \psi \to \varphi \land \psi & (,) & if Smith may publish, then, if he may edit the notes, he may publish and edit the notes \\
+            (fst)  & \varphi \land \psi \to \varphi & fst & someone who may publish and edit the notes may publish \\
+            (snd)  & \varphi \land \psi \to \psi    & snd & and may edit the notes
+        \end{tabular}
+    \end{center}
+    To make a conjunction, you need both halves. To use one, you take a half.
+
+    \textbf{OR}: With $b$ ``the scheduled job triggered the release'', $h$ ``a maintainer pressed the button'', $r$ ``the release may go ahead''.
+
+    \begin{center}
+        \begin{tabular}{l >{$}l<{$} >{\ttfamily}l p{0.38\textwidth}}
+            \textsc{schema} & \text{\textsc{shape}} & \normalfont\textsc{haskell} & \textsc{for hughes} \\[4pt]
+            (left) & \varphi \to \varphi \lor \psi & Left & if the job triggered it, the job or a maintainer did \\ 
+            (right)  & \psi \to \varphi \lor \psi & Right & likewise for the maintainer \\ 
+            (either)  & \varphi \land \psi \to \psi  & snd & and may edit the notes % change me
+        \end{tabular}
+    \end{center}
 \end{definition}
 
 \end{document}
