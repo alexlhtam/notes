@@ -11,11 +11,20 @@
 \newtheorem{lemma}[definition]{Lemma}
 \newtheorem{prop}[definition]{Proposition}
 
+% change spacing
 \let\olditemize\itemize
 \renewcommand{\itemize}{\olditemize\setlength{\itemsep}{0pt}\setlength{\parsep}{0pt}}
 \let\oldenumerate\enumerate
 \renewcommand{\enumerate}{\oldenumerate\setlength{\itemsep}{0pt}\setlength{\parsep}{0pt}}
 
+% hilbert proofs
+\newcounter{dline}
+\newenvironment{deduction}[1][\textit{no hypotheses}]
+    {\setcounter{dline}{0}%
+     \[\begin{array}{r|l@{\qquad}l}
+     & #1 \\ \cline{2-2}}
+    {\end{array}\]}
+\newcommand{\dl}[2]{\stepcounter{dline}\thedline & #1 & \text{#2} \\}
 
 \begin{document}
 \section{Hilbert Proofs}
@@ -160,7 +169,7 @@ It does not say that proofs \textit{resemble} programs, or that there is a usefu
             (snd)  & \varphi \land \psi \to \psi    & snd & and may edit the notes
         \end{tabular}
     \end{center}
-    To make a conjunction, you need both halves. To use one, you take a half.
+    To make a conjunction, you need both halves. To use one, you take a half. \\
 
     \textbf{OR}: With $b$ ``the scheduled job triggered the release'', $h$ ``a maintainer pressed the button'', $r$ ``the release may go ahead''.
 
@@ -169,9 +178,74 @@ It does not say that proofs \textit{resemble} programs, or that there is a usefu
             \textsc{schema} & \text{\textsc{shape}} & \normalfont\textsc{haskell} & \textsc{for hughes} \\[4pt]
             (left) & \varphi \to \varphi \lor \psi & Left & if the job triggered it, the job or a maintainer did \\ 
             (right)  & \psi \to \varphi \lor \psi & Right & likewise for the maintainer \\ 
-            (either)  & \varphi \land \psi \to \psi  & snd & and may edit the notes % change me
+            (either)  &(\varphi \to \chi) \to (\psi \to \chi) \to \varphi \lor \psi \to \chi &either & if the job may publish, 
+            and a maintainer may, then whichever did it, it may go ahead 
         \end{tabular}
     \end{center}
+    To make a disjunction you need one side. To use one you must handle both: (either) is proof by cases.
+
+    \newpage
+    
+    \textbf{NOT}: A new formula $\bot$, read ``absurd'': \textit{that cannot happen}. Nothing makes $\bot$.
+
+    \[\text{(absurd)} \quad \bot \to \varphi\]
+
+    From what cannot happen, anything follows. Haskell: \texttt{absurd :: Void -> a}. 
+    And $\neg \varphi$ abbreviates $\varphi \to \bot$, read ``not $\varphi$''. 
+    ``A fork may not publish'' is $u \to \neg r$, that is, $u \to r \to \bot$. $u$:
+    ``the request comes from a fork''. A prohibnition is an arrow into absurdity.
 \end{definition}
+
+\begin{example}[proof by cases]
+    The bot may publish when the job triggers it ($b \to r$), and when a maintainer presses the button ($h \to r$). The
+    log says one of the two happened ($b \lor h$), not which. May the release go ahead?
+    \begin{deduction}[b \to r, h \to r, b \lor h]
+        \dl{b \to r}{hypothesis}
+        \dl{h \to r}{hypothesis}
+        \dl{(b \to r) \to (h \to r) \to b \lor h \to r}{(either) $[b, h, r]$}
+        \dl{(h \to r) \to b \lor h \to r}{MP 3, 1}
+        \dl{b \lor h \to r} {MP 4, 2}
+        \dl{b \lor h}{hypothesis}
+        \dl{r}{MP 5, 6}
+    \end{deduction}
+    Two rules with the same conclusion are as good as one rule whose condition is ``the one or the other''. That is what
+    (either says).
+\end{example}
+
+\begin{example}[commutativity of $\lor$]
+    \begin{deduction}
+        \dl{(b \to \varepsilon) \to (h \to \varepsilon) \to b \lor h \to \varepsilon}{(either) $[b, h, \varepsilon]$}
+        \dl{b \to \varepsilon}{(right) $[h, b]$}
+        \dl{(h \to \varepsilon) \to b \lor h \to \varepsilon}{MP 1, 2}
+        \dl{h \to \varepsilon}{(left) $[h, b]$}
+        \dl{b \lor h \to \varepsilon}{MP 3, 4}
+    \end{deduction}
+    No hypotheses and no discharge: the two cases were both axioms, and (either) joined them.
+\end{example}
+
+\begin{example}[from a contradiction, anything]
+    A careless edit leaves the policy saying both that Smith has write access and that he does not. What follows?
+    Everthing: any $r$, ``Jones may rotate the signing key'', say.
+    \begin{deduction}[q, \neg q]
+        \dl{q}{hypothesis}
+        \dl{q \to \bot}{hypothesis (that is, $\neg q$)}
+        \dl{\bot}{MP 2, 1}
+        \dl{\bot \to r}{(absurd) $[r]$}
+        \dl{r}{MP 4, 3}
+    \end{deduction}
+    ``Not $q$'' means that $q$ leads to what cannot happen; but $q$ holds; so what cannot happen has happened; and from
+    that, anything. A conflict between an allow rule and a deny rule is an emergency.
+\end{example}
+\newpage
+
+
+\begin{example}[commutativity of $\land$]
+    ``May publish and edit notes'' written by the colleague the other way around. $r$ ``may publish'', $a$ ``may edit
+    the notes''. For now: told both, conclude both the other way round.
+    
+    % continue...
+    
+\end{example}
+
 
 \end{document}
