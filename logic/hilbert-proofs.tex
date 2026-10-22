@@ -26,6 +26,7 @@
     {\end{array}\]}
 \newcommand{\dl}[2]{\stepcounter{dline}\thedline & #1 & \text{#2} \\}
 
+% tables
 \newcounter{factrow}
 \newenvironment{comparison}[3]
     {\setcounter{factrow}{0}\par\noindent
@@ -177,7 +178,7 @@ It does not say that proofs \textit{resemble} programs, or that there is a usefu
             (snd)  & \varphi \land \psi \to \psi    & snd & and may edit the notes
         \end{tabular}
     \end{center}
-    To make a conjunction, you need both halves. To use one, you take a half. \\
+    To make a conjunction, you need both halves. To use one, you take a half.
 
     \textbf{OR}: With $b$ ``the scheduled job triggered the release'', $h$ ``a maintainer pressed the button'', $r$ ``the release may go ahead''.
 
@@ -325,7 +326,62 @@ It does not say that proofs \textit{resemble} programs, or that there is a usefu
     \begin{itemize}
         \item{Lines 1--3: Take the hypothesis $q \to r$ and weakn it, by (I), to $p \to (q \to r)$: a statement that
         says less, since it only promises $q \to r$ once $p$ is given.}
+        \item{Lines 4--5: Put that through (II), which turns ``given $p$, $q$ implies $r$'' into ``if $p$ gives $q$ then
+        $p$ gives $r$''.}
+        \item{Line 7: Fire the result on the other hyptohesis.}
     \end{itemize}
 \end{example}
+
+\begin{example}[the filled rule]
+    By transitivity certain lines never have to be written.
+    \begin{deduction}[p, p \to q, q \to r]
+        \dl{p \to r}{hypothetical syllogism}
+        \dl{p}{hypothesis}
+        \dl{r}{MP 1,2}
+    \end{deduction}
+    Line 1 is not an axiom and not a hypothesis. It is justified by a fact about proofs.
+\end{example}
+
+\begin{example}[chaining three]
+    Or chain three implications instead of two: $\{p \to q, q \to r, r \to s\} \vdash p \to s$ is two uses of the filled
+    rule.
+    \begin{deduction}{p \to q, q \to r, r \to s}
+        \dl{p \to r}{hypothetical syllogism}
+        \dl{p \to s}{hypothetical syllogism, from $1$ and $r \to s$}
+    \end{deduction}
+\end{example}
+
+\newpage
+
+\subsection{The Deduction Theorem}
+
+\begin{theorem}[Deduction Theoreom]
+    For every set of formulas $\Gamma$ and all formulas $\varphi, \psi$:
+    \[\Gamma \cup \{\varphi\} \vdash \psi \iff \Gamma \vdash \varphi \to \psi\]
+
+    Right to left is one use of modus ponens: \\
+    Suppose $\Gamma \vdash \varphi \to \psi$. Show $\Gamma \cup \{\varphi\}\vdash \psi$.
+    \begin{enumerate}
+        \item Take proof of $\varphi \to \psi$ from $\Gamma$. It is also a proof from $\Gamma cup \{\varphi\}$, by
+        monotonicity.
+        \item Add the line $\varphi$, justified as a hypothesis: $\varphi$ is a member of $\Gamma \cup \{\varphi\}$.
+        \item Add the line $\psi$, by modus ponens on $\varphi \to \psi$ and $\varphi$.
+    \end{enumerate}
+    This is the easy direction: we can make use of the implication.
+    \newline
+
+    Left to right is the transformation. The plan:
+    \begin{itemize}
+        \item Let $\varphi_1, \dots, \varphi_n = \psi$ be a proof of $\psi$ from $\Gamma \cup \{\varphi\}$.
+        \item Go down it one line at a time.
+        \item For each line $\varphi_k$, write out a proof of $\varphi \to \varphi_k$ from $\Gamma$ \textit{alone},
+        using the proofs already writen for the earlier lines.
+        \item At the last line, $\varphi_n = \psi$, we have a proof of $\varphi \to \psi$.
+    \end{itemize}
+    Induction on $k$: \textbf{Hypothesis}: for every $j < k$, a proof of $\varphi \to \varphi_j$ from $\Gamma$ has been
+    written. \textbf{To show}: a proof of $\varphi \to \varphi_k$ from $\Gamma$, built on top of those.
+\end{theorem}
+
+
 
 \end{document}
