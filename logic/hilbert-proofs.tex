@@ -312,7 +312,7 @@ It does not say that proofs \textit{resemble} programs, or that there is a usefu
 \end{example}
 
 \begin{example}[hypothetical syllogism]
-    The rule that chains two implications. From the two sentences of the policy it derives the third that nobdoy wrote
+    The rule that chains two implications. From the two sentences of the policy it derives the third that nobody wrote
     down: if Smith is a maintainer, he may publish. Show $\{ p \to q, q \to r\} \vdash p \to r$.
     \begin{deduction}[p \to q, q \to r]
         \dl{q \to r}{hypothesis}
@@ -356,7 +356,7 @@ It does not say that proofs \textit{resemble} programs, or that there is a usefu
 
 \subsection{The Deduction Theorem}
 
-\begin{theorem}[Deduction Theoreom]
+\begin{theorem}[Deduction Theorem]
     For every set of formulas $\Gamma$ and all formulas $\varphi, \psi$:
     \[\Gamma \cup \{\varphi\} \vdash \psi \iff \Gamma \vdash \varphi \to \psi\]
 
@@ -376,7 +376,7 @@ It does not say that proofs \textit{resemble} programs, or that there is a usefu
         \item Let $\varphi_1, \dots, \varphi_n = \psi$ be a proof of $\psi$ from $\Gamma \cup \{\varphi\}$.
         \item Go down it one line at a time.
         \item For each line $\varphi_k$, write out a proof of $\varphi \to \varphi_k$ from $\Gamma$ \textit{alone},
-        using the proofs already writen for the earlier lines.
+        using the proofs already written for the earlier lines.
         \item At the last line, $\varphi_n = \psi$, we have a proof of $\varphi \to \psi$.
     \end{itemize}
     Induction on $k$: \textbf{Hypothesis}: for every $j < k$, a proof of $\varphi \to \varphi_j$ from $\Gamma$ has been
@@ -443,7 +443,7 @@ It does not say that proofs \textit{resemble} programs, or that there is a usefu
         $varphi_2 = p$ is the supposition itself. Copy in the five line proof of $p \to p$.
 
     [line 3, case 3]
-        $varphi_3 = q$ acme by modus ponens from lines1 and 2. We hold $p \to (p \to q)$ at ouptut line 3 and $p \to p$.
+        $varphi_3 = q$ acme by modus ponens from lines1 and 2. We hold $p \to (p \to q)$ at output line 3 and $p \to p$.
         Distribute by (II), fire. 
         \begin{deduction}[p \to q]
             \dl{(p \to \ \to q) \to (p \to p) \to p \to q}{(II) $[p, p, q]$}
@@ -457,10 +457,10 @@ To type a definition $f \, x \, := M$, a checker wants to say: suppose $x$ has t
 , then $f$ has type $A \to B$. \\
 \[\Gamma, x: A \vdash M : B \implies \Gamma \vdash f: A \to B\]
 With the programs rubbed out: if $\Gamma \cup \{\varphi\} \vdash \psi$ then $\Gamma \vdash \varphi \to \psi$. That
-\textit{is} the Deduction Theoreom, left to right.
+\textit{is} the Deduction Theorem, left to right.
 
 \begin{example}[hypothetical syllogism, by supposing]
-    Suppose write access lets you publish, maintainers have accss, and Smith is a maintainer. Then, he may publish.
+    Suppose write access lets you publish, maintainers have access, and Smith is a maintainer. Then, he may publish.
     \begin{deduction}[q \to r, p \to q, p]
         \dl{q \to r}{hypothesis}
         \dl{p \to q}{hypothesis}
@@ -485,7 +485,7 @@ With the programs rubbed out: if $\Gamma \cup \{\varphi\} \vdash \psi$ then $\Ga
     two schemas, application is modus ponens, a variable in the context is a hypothesis. The compiler that refused was
     refusing a bad proof.
     \item The rule the compiler needed for a parameter is the \textbf{Deduction Theorem}, $\Gamma \cup \{\varphi\}
-    \vdash \psi$ iff $\Gamma \vdash \varphi \to \psi$, whose proof is the algorithm that compiles the paraemter away.
+    \vdash \psi$ iff $\Gamma \vdash \varphi \to \psi$, whose proof is the algorithm that compiles the parameter away.
     \item When the language grew to \textbf{and, or and not}, seven schemas were added, each the type of a function we
     know, and neither theorem changed.
 \end{itemize}
