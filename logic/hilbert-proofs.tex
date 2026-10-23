@@ -1,0 +1,492 @@
+\documentclass[a4paper, 11pt]{article}
+
+\usepackage[margin=3cm]{geometry} 
+\usepackage{amsthm, amsmath, amssymb}
+\usepackage{array}
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
+\newtheorem{example}[definition]{Example}
+\newtheorem{theorem}[definition]{Theorem}
+\newtheorem{lemma}[definition]{Lemma}
+\newtheorem{prop}[definition]{Proposition}
+
+% change spacing
+\let\olditemize\itemize
+\renewcommand{\itemize}{\olditemize\setlength{\itemsep}{0pt}\setlength{\parsep}{0pt}}
+\let\oldenumerate\enumerate
+\renewcommand{\enumerate}{\oldenumerate\setlength{\itemsep}{0pt}\setlength{\parsep}{0pt}}
+
+% hilbert proofs
+\newcounter{dline}
+\newenvironment{deduction}[1][\textit{no hypotheses}]
+    {\setcounter{dline}{0}%
+     \[\begin{array}{r|l@{\qquad}l}
+     & #1 \\ \cline{2-2}}
+    {\end{array}\]}
+\newcommand{\dl}[2]{\stepcounter{dline}\thedline & #1 & \text{#2} \\}
+
+% tables
+\newenvironment{comparison}[4][p{0.22\textwidth} p{0.36\textwidth} p{0.36\textwidth}]
+    {\setcounter{factrow}{0}%
+     \begin{center}
+     \begin{tabular}{#1}
+     \textsc{#2} & \textsc{#3} & \textsc{#4} \\[4pt]}
+    {\end{tabular}
+     \end{center}}
+
+
+\begin{document}
+\section{Hilbert Proofs}
+
+\subsection{Formulas, axioms, and proofs}
+\begin{definition}[formulas]
+    Fix a stock of letters $p, q, r, \dots$. The formulas are defined inductively:
+    \begin{enumerate}
+        \item Every letter is a formula
+        \item If $\varphi$ and $\psi$ are formulas, so is $\varphi \to \psi$, read "if $\varphi$, then $\psi$.
+        \item Nothing else is a formula
+    \end{enumerate}
+    In one line: \[\varphi, \psi \quad := \quad p \quad | \quad \varphi \to \psi\]
+    The arrows groups to the right: \[\varphi \to \psi \to \chi \text{ is } \varphi \to (\psi \to \chi)\]
+    Small Greek letters stand for formulas, as capital Latin ones stood for types. Formulas have the same grammar as types; Section 2.2 says why.
+
+    What do we mean by ``if \dots, then \dots?'' At least this: whenever the \textit{if} parts holds, the \textit{then} part may be concluded. In symbols, \[\text{from } \varphi \to \psi \text{ and } \varphi, \text{ conclude } \psi\]
+    The rule's Latin name is \textit{modus ponens}, and it is the only move we make in this chapter.
+    The first shape: A truth is implied by anything: if $\varphi$ holds, then $\varphi$ holds whatever else, say $\psi$, does.\[\varphi \to \psi \to \varphi\]
+    The second shape: \textit{modus ponens} carried out under a hypothesis: if, given $\varphi$, we have $\psi \to \chi$, and given $\varphi$, we have $\psi$, then given $\varphi$, we have $\chi$. \[(\varphi \to \psi \to \chi) \to (\varphi \to \psi) \to \varphi \to \chi\]
+\end{definition}
+
+\begin{definition}[proof from hypotheses]
+    The \textit{axioms} are all instances of two schemas, where $\varphi$, $\chi$ and $\chi$ stand for arbitrary formulas: 
+    \begin{alignat*}{2}
+        &\text{(I)}\qquad  && \varphi \to \psi \to \varphi \\
+        &\text{(II)}\qquad && (\varphi \to \psi \to \chi) \to (\varphi \to \psi) \to \varphi \to \chi
+    \end{alignat*}
+    Let $\Gamma$ be a set of formulas, the hypotheses. A proof of $\varphi$ from $\Gamma$ is a finite sequence of formulas $\varphi_1, \dots, \varphi_n$ whose last line is $\varphi$, in which each line $\varphi_k$ is justified in one of three ways:
+    \begin{enumerate}
+        \item (\textit{axiom}) $\phi_k$ is an instance of (I) or (II);
+        \item (\textit{hypothesis}) is a member of $\Gamma$;
+        \item (\textit{modus ponens}) there are earlier lines $\varphi_i$ and $\varphi_j$, with $i, j < k$ such that $\varphi_i$ is the formula $\varphi_j \to \varphi_k$.
+    \end{enumerate}
+    No other kind of line is allowed.
+\end{definition}
+
+\newpage
+
+\begin{definition}[theorems]
+    If such a proof exists, we write \[\Gamma \vdash \varphi\] read ``$\varphi$ is provable from $\Gamma$''. A proof from $\Gamma$ does not know whether its hypotheses hold; it says what follows if they do.
+    When $\Gamma$ is empty the second clause never applies. We write $\vdash \varphi$ and call $\varphi$ a theorem: it holds by virtue of its logical structure alone, with nothing told.
+\end{definition}
+
+\begin{example}[is it an axiom?]
+Is each an instance of (I), (II), or neither?
+\begin{enumerate}
+    \item $p \to q \to r$: Neither. (I) needs the same formula at both ends.
+    \item $q \to (p \to p) \to q$: (I) with $\varphi := q$, $\psi := p \to p$
+    \item $(p \to q) \to (q \to r) \to p \to r$ Neither. It is what chaining two implications concludes, not an instance of a schema.
+    \item $(p \to p \to p) \to (p \to p) \to p \to p$ (II) with $\varphi := p$, $\psi := p$, $\chi := p$
+\end{enumerate}
+Checking a shape is a matter of comparing the pieces, no understanding required.
+\end{example}
+
+\begin{example}[$\vdash p \to p$]
+    \[
+        \begin{array}{r|l@{\qquad}l}
+        & \textit{no hypotheses} \\ \cline{2-2}
+        1 & (p \to (p \to p) \to p) \to (p \to (p \to p)) \to p \to p & \text{(II) } [p,\ p \to p,\ p] \\
+        2 & p \to (p \to p) \to p & \text{(I) } [p,\ p \to p] \\
+        3 & (p \to (p \to p)) \to p \to p & \text{MP } 1,\ 2 \\
+        4 & p \to (p \to p) & \text{(I) } [p,\ p] \\
+        5 & p \to p & \text{MP } 3,\ 4
+        \end{array}
+    \] 
+    Each line is trivial to check, but Line 1 is not trivial to find. The thinking runs backwards from the goal. That is how all proofs are found.
+    \begin{enumerate}
+        \item The goal $p \to p$ is not an axiom, so it comes by modus ponens: from some $\chi$ and $\chi \to (p \to p)$.
+        \item Could $\chi \to (p \to p)$ be an instance of (I)? Then $\chi$ would be $p$, and we would need a proof of $p$ on its own. There cannot be one: nothing in the system proves a bare letter. 
+        \item So try (II). Its last part, $\varphi \to \chi$, must be $p \to p$. That fixes $\varphi = \chi = p$ and leaves $\psi$ free.
+        \item The two premises are then $p \to (\psi \to p)$ and $p \to \psi$. Choose $\psi := p \to p$, and both are instances of (I).
+    \end{enumerate} 
+\end{example}
+
+\newpage
+
+\subsection{Proofs are programs}
+
+\begin{theorem}[Curry's correspondence]
+$\Gamma \vdash M:A$ for some term $M$ if  and only if $|\Gamma| \vdash A$
+
+\begin{enumerate}
+    \item (Erasure) Replace every line of a typing of $\Gamma \vdash M:A$ by its partner in the right-hand column. The result is a proof of A from $|\Gamma|$
+    \item (Decoration) Take a proof of $\varphi$ from some hypotheses, give each hypothesis a variable, and replace every line by its partner in the left-hand column, working downwards. The result is a typing of $\Gamma \vdash M: \varphi$ for some term $M$.
+\end{enumerate}
+All that needs checking is that each line's justification survives the change. Every line of a typing has the same context $\Gamma$, so take the four kinds of line in turn.
+\begin{enumerate}
+    \item A line by (K) has type $B \to C \to B$: erased, an instance of (I).
+    \item A line by (S) has type $(B \to C \to D) \to (B \to C) \to B \to D$: erased, an instance of (II)
+    \item A line by (var) has a type listed in $\Gamma$: erased, a member of $|\Gamma|$, a hypothesis.
+    \item A line by ``(app) $i, j$'' has type $C$, where line $i$ has type $B \to C$ and line $j$ has type $B$. Erased, ``MP $i, j$'' is a correct justification for $C$.
+\end{enumerate}
+It does not say that proofs \textit{resemble} programs, or that there is a useful analogy.
+\end{theorem}
+
+\subsection{More connectives: and, or, and not}
+
+\begin{definition}[formulas, extended]
+    Fix a stock of letters $p, q, r, \dots$, as before. The formulas are defined inductively:
+    \begin{enumerate}
+        \item every letter is a formula;
+        \item $\bot$ is a formula, read ``absurd'' or ``that cannot happen''
+        \item if $\varphi, \psi$ are formulas, so is $\varphi \to \psi$;
+        \item if $\varphi, \psi$ are formulas, so is $\varphi \land \psi$, ``$\varphi$ and $\psi$'';
+        \item if $\varphi, \psi$ are formulas, so is $\varphi \lor \psi$, ``$\varphi$ or $\psi$'';
+        \item nothing else is a formula.
+    \end{enumerate}
+    In one line: \[\varphi, \psi \quad ::= \quad p \quad |\quad \bot\quad  | \quad \varphi \to \psi \quad | \quad \varphi \land \psi \quad | \quad \varphi \lor \psi\]
+    $\neg \varphi$ abbreviates $\varphi \to \bot$, read ``not $\varphi$'': a short way of of writing an arrow into $\bot$.
+\end{definition}
+
+\newpage
+
+\begin{definition}[nine schemas]
+    The axioms are all instances of nine schemas, where $\varphi, \psi, \chi$ stand for arbitrary formulas.
+    \begin{center}
+    \begin{tabular}{l >{$}l<{$}}
+        \textsc{schema} & \text{\textsc{shape}} \\[2pt]
+        (I)              & \varphi \to \psi \to \varphi \\
+        (II)             & (\varphi \to \psi \to \chi) \to (\varphi \to \psi) \to \varphi \to \chi \\
+        (pair)           & \varphi \to \psi \to \varphi \land \psi \\
+        (fst), (snd)     & \varphi \land \psi \to \varphi,\ \ \varphi \land \psi \to \psi \\
+        (left), (right)  & \varphi \to \varphi \lor \psi,\ \ \psi \to \varphi \lor \psi \\
+        (either)         & (\varphi \to \chi) \to (\psi \to \chi) \to \varphi \lor \psi \to \chi \\
+        (absurd)         & \bot \to \varphi
+    \end{tabular}
+    \end{center}
+    The same three kind of line: a proof of $\varphi$ from $\Gamma$ is a box, as before, in which each line is
+    \begin{enumerate}
+        \item (\textit{axiom}) an instance of one of the nine schemas;
+        \item (\textit{hypothesis}) a member of $\Gamma$;
+        \item (\textit{modus ponens}) the $\varphi_k$ of earlier lines $\varphi_j \to \varphi_k$ and $\varphi_j$.
+    \end{enumerate}
+
+    \textbf{AND}: With $r$ ``Smith may publish'', $a$ ``Smith may edit the release notes''.
+    \begin{center}
+        \begin{tabular}{l >{$}l<{$} >{\ttfamily}l p{0.38\textwidth}}
+            \textsc{schema} & \text{\textsc{shape}} & \normalfont\textsc{haskell} & \textsc{for hughes} \\[4pt]
+            (pair) & \varphi \to \psi \to \varphi \land \psi & (,) & if Smith may publish, then, if he may edit the notes, he may publish and edit the notes \\
+            (fst)  & \varphi \land \psi \to \varphi & fst & someone who may publish and edit the notes may publish \\
+            (snd)  & \varphi \land \psi \to \psi    & snd & and may edit the notes
+        \end{tabular}
+    \end{center}
+    To make a conjunction, you need both halves. To use one, you take a half.
+
+    \textbf{OR}: With $b$ ``the scheduled job triggered the release'', $h$ ``a maintainer pressed the button'', $r$ ``the release may go ahead''.
+
+    \begin{center}
+        \begin{tabular}{l >{$}l<{$} >{\ttfamily}l p{0.38\textwidth}}
+            \textsc{schema} & \text{\textsc{shape}} & \normalfont\textsc{haskell} & \textsc{for hughes} \\[4pt]
+            (left) & \varphi \to \varphi \lor \psi & Left & if the job triggered it, the job or a maintainer did \\ 
+            (right)  & \psi \to \varphi \lor \psi & Right & likewise for the maintainer \\ 
+            (either)  &(\varphi \to \chi) \to (\psi \to \chi) \to \varphi \lor \psi \to \chi &either & if the job may publish, 
+            and a maintainer may, then whichever did it, it may go ahead 
+        \end{tabular}
+    \end{center}
+    To make a disjunction you need one side. To use one you must handle both: (either) is proof by cases.
+
+    \newpage
+    
+    \textbf{NOT}: A new formula $\bot$, read ``absurd'': \textit{that cannot happen}. Nothing makes $\bot$.
+
+    \[\text{(absurd)} \quad \bot \to \varphi\]
+
+    From what cannot happen, anything follows. Haskell: \texttt{absurd :: Void -> a}. 
+    And $\neg \varphi$ abbreviates $\varphi \to \bot$, read ``not $\varphi$''. 
+    ``A fork may not publish'' is $u \to \neg r$, that is, $u \to r \to \bot$. $u$:
+    ``the request comes from a fork''. A prohibition is an arrow into absurdity.
+\end{definition}
+
+\begin{example}[proof by cases]
+    The bot may publish when the job triggers it ($b \to r$), and when a maintainer presses the button ($h \to r$). The
+    log says one of the two happened ($b \lor h$), not which. May the release go ahead?
+    \begin{deduction}[b \to r, h \to r, b \lor h]
+        \dl{b \to r}{hypothesis}
+        \dl{h \to r}{hypothesis}
+        \dl{(b \to r) \to (h \to r) \to b \lor h \to r}{(either) $[b, h, r]$}
+        \dl{(h \to r) \to b \lor h \to r}{MP 3, 1}
+        \dl{b \lor h \to r} {MP 4, 2}
+        \dl{b \lor h}{hypothesis}
+        \dl{r}{MP 5, 6}
+    \end{deduction}
+    Two rules with the same conclusion are as good as one rule whose condition is ``the one or the other''. That is what
+    (either says).
+\end{example}
+
+\begin{example}[commutativity of $\lor$]
+    \begin{deduction}
+        \dl{(b \to \varepsilon) \to (h \to \varepsilon) \to b \lor h \to \varepsilon}{(either) $[b, h, \varepsilon]$}
+        \dl{b \to \varepsilon}{(right) $[h, b]$}
+        \dl{(h \to \varepsilon) \to b \lor h \to \varepsilon}{MP 1, 2}
+        \dl{h \to \varepsilon}{(left) $[h, b]$}
+        \dl{b \lor h \to \varepsilon}{MP 3, 4}
+    \end{deduction}
+    No hypotheses and no discharge: the two cases were both axioms, and (either) joined them.
+\end{example}
+
+\begin{example}[from a contradiction, anything]
+    A careless edit leaves the policy saying both that Smith has write access and that he does not. What follows?
+    Everything: any $r$, ``Jones may rotate the signing key'', say.
+    \begin{deduction}[q, \neg q]
+        \dl{q}{hypothesis}
+        \dl{q \to \bot}{hypothesis (that is, $\neg q$)}
+        \dl{\bot}{MP 2, 1}
+        \dl{\bot \to r}{(absurd) $[r]$}
+        \dl{r}{MP 4, 3}
+    \end{deduction}
+    ``Not $q$'' means that $q$ leads to what cannot happen; but $q$ holds; so what cannot happen has happened; and from
+    that, anything. A conflict between an allow rule and a deny rule is an emergency.
+\end{example}
+\newpage
+
+
+\begin{example}[commutativity of $\land$]
+    ``May publish and edit notes'' written by the colleague the other way around. $r$ ``may publish'', $a$ ``may edit
+    the notes''. For now: told both, conclude both the other way round.
+    
+    \begin{deduction}[r \land a]
+        \dl{r \land a}{hypothesis}
+        \dl{r \land a \to a}{(snd) $[r, a]$}
+        \dl{a}{MP 2, 1}
+        \dl{r \land a \to r}{(fst) $[r, a]$}
+        \dl{r}{MP 4, 1}
+        \dl{a \to r \to a \land r}{(pair) $[a, r]$}
+        \dl{r \to a \land r}{MP 6, 3}
+        \dl{a \land r}{MP 7, 3}
+    \end{deduction}
+    
+\end{example}
+
+\begin{example}[contraposition]
+    The checker refuses Smith a release: he has no write access. That tells Hughes he is not a maintainer.
+    She wants $\vdash (p \to q) \to \neg q \to \neg p$. The clerk can follow her as far as ``which cannot happen''.
+    \begin{deduction}[p \to q, \neg q, p]
+        \dl{p \to q}{hypothesis}
+        \dl{q \to \bot}{hypothesis (that is, $\neg q$)}
+        \dl{p}{hypothesis}
+        \dl{q}{MP 1, 3}
+        \dl{\bot}{MP 2, 4}
+    \end{deduction}
+    $\{p \to q, \neg q, p\} \vdash \bot$. That is what $\neg p$ means, but the clerk has $p$ above the line, where it is
+    of no use to anyone.
+\end{example}
+
+\newpage
+\subsection{Proof theory}
+\begin{prop}[structural facts]
+    For all sets of $\Gamma, \Delta$ and all formulas $\varphi, \psi$: 
+    \begin{enumerate}
+        \item (reflexivity) if $\varphi \in \Gamma$ then $\Gamma \vdash \varphi$;
+        \item (monotonicity) if $\Gamma \subseteq \Delta$ and $\Gamma \vdash \varphi$ then $\Delta \vdash \varphi$;
+        \item (transitivity) if $\Gamma \vdash \varphi$ and $\Delta \cup \{\varphi\}$ then $\Gamma \cup \Delta \vdash \varphi$.
+    \end{enumerate}
+
+    \begin{enumerate}
+        \item The one-line sequence $\varphi$ is a proof of $\varphi$ from $\Gamma$: its only line is justified as a
+        hypothesis, because $\varphi$ is a member of $\Gamma$.
+        \item A proof of $\varphi$ from $\Gamma$ is already a proof of $\varphi$ from $\Delta$: every line justified as
+        a member of $\Gamma$ is a member of $\Delta$ too, and the two kinds of line do not mention $\Gamma$.
+        \item Write out the proof of $\varphi$ from $\Gamma$, and after it the proof of $\psi$ from $\Delta \cup \{
+        \varphi\}$ with every line justified as ``hypothesis $\varphi$'' deleted; each modus ponens that cited one of
+        the deleted lines now cites the last line of the first proof, which is $\varphi$. Every remaining hypothesis is
+        in $\Gamma$ or in $\Delta$, so the result is a proof of $\psi$ from $\Gamma \cup \Delta$.
+    \end{enumerate}
+\end{prop}
+
+\begin{example}[a fact once told stays told]
+    Show $\{p\} \vdash q \to p$: from ``Smith is a maintainer'', ``if he has write access, he is a maintainer''.
+    \begin{deduction}[p]
+        \dl{p \to q \to p}{(I) $[p, q]$}
+        \dl{p}{hypothesis}
+        \dl{q \to p}{MP 1, 2}
+    \end{deduction}
+\end{example}
+
+\begin{example}[hypothetical syllogism]
+    The rule that chains two implications. From the two sentences of the policy it derives the third that nobdoy wrote
+    down: if Smith is a maintainer, he may publish. Show $\{ p \to q, q \to r\} \vdash p \to r$.
+    \begin{deduction}[p \to q, q \to r]
+        \dl{q \to r}{hypothesis}
+        \dl{(q \to r) \to p \to (q \to r)}{(I) $[q \to r, p]$}
+        \dl{p \to (q \to r)}{MP 2, 1}
+        \dl{(p \to (q \to r)) \to (p \to q) \to p \to r}{(II) $[p, q, r]$}
+        \dl{(p \to q) \to p \to r}{MP 4, 3}
+        \dl{p \to q}{hypothesis}
+        \dl{p \to r}{MP 5, 6}
+    \end{deduction}
+    Read the block, not the symbols:
+    \begin{itemize}
+        \item{Lines 1--3: Take the hypothesis $q \to r$ and weakn it, by (I), to $p \to (q \to r)$: a statement that
+        says less, since it only promises $q \to r$ once $p$ is given.}
+        \item{Lines 4--5: Put that through (II), which turns ``given $p$, $q$ implies $r$'' into ``if $p$ gives $q$ then
+        $p$ gives $r$''.}
+        \item{Line 7: Fire the result on the other hyptohesis.}
+    \end{itemize}
+\end{example}
+
+\begin{example}[the filled rule]
+    By transitivity certain lines never have to be written.
+    \begin{deduction}[p, p \to q, q \to r]
+        \dl{p \to r}{hypothetical syllogism}
+        \dl{p}{hypothesis}
+        \dl{r}{MP 1,2}
+    \end{deduction}
+    Line 1 is not an axiom and not a hypothesis. It is justified by a fact about proofs.
+\end{example}
+
+\begin{example}[chaining three]
+    Or chain three implications instead of two: $\{p \to q, q \to r, r \to s\} \vdash p \to s$ is two uses of the filled
+    rule.
+    \begin{deduction}{p \to q, q \to r, r \to s}
+        \dl{p \to r}{hypothetical syllogism}
+        \dl{p \to s}{hypothetical syllogism, from $1$ and $r \to s$}
+    \end{deduction}
+\end{example}
+
+\newpage
+
+\subsection{The Deduction Theorem}
+
+\begin{theorem}[Deduction Theoreom]
+    For every set of formulas $\Gamma$ and all formulas $\varphi, \psi$:
+    \[\Gamma \cup \{\varphi\} \vdash \psi \iff \Gamma \vdash \varphi \to \psi\]
+
+    Right to left is one use of modus ponens: \\
+    Suppose $\Gamma \vdash \varphi \to \psi$. Show $\Gamma \cup \{\varphi\}\vdash \psi$.
+    \begin{enumerate}
+        \item Take proof of $\varphi \to \psi$ from $\Gamma$. It is also a proof from $\Gamma cup \{\varphi\}$, by
+        monotonicity.
+        \item Add the line $\varphi$, justified as a hypothesis: $\varphi$ is a member of $\Gamma \cup \{\varphi\}$.
+        \item Add the line $\psi$, by modus ponens on $\varphi \to \psi$ and $\varphi$.
+    \end{enumerate}
+    This is the easy direction: we can make use of the implication.
+    \newline
+
+    Left to right is the transformation. The plan:
+    \begin{itemize}
+        \item Let $\varphi_1, \dots, \varphi_n = \psi$ be a proof of $\psi$ from $\Gamma \cup \{\varphi\}$.
+        \item Go down it one line at a time.
+        \item For each line $\varphi_k$, write out a proof of $\varphi \to \varphi_k$ from $\Gamma$ \textit{alone},
+        using the proofs already writen for the earlier lines.
+        \item At the last line, $\varphi_n = \psi$, we have a proof of $\varphi \to \psi$.
+    \end{itemize}
+    Induction on $k$: \textbf{Hypothesis}: for every $j < k$, a proof of $\varphi \to \varphi_j$ from $\Gamma$ has been
+    written. \textbf{To show}: a proof of $\varphi \to \varphi_k$ from $\Gamma$, built on top of those. Three cases:
+    \begin{enumerate}
+        \item $\varphi_k$ is an axiom or a member of $\Gamma$: \newline
+        Then, $\varphi_k$ is a legitimate line of a proof from $\Gamma$. Write:
+        \begin{deduction}[\Gamma]
+            \dl{\varphi_k}{as before}
+            \dl{\varphi_k \to \varphi \to \varphi_k}{(I) $[\varphi_k, \varphi]$}
+            \dl{\varphi \to \varphi_k}{MP 2, 1}
+        \end{deduction} \\
+        Three lines: A line we did not need $\varphi$ for stays true when we suppose $\varphi$ as well, (I) says exactly
+        that.
+        
+        \item $\varphi_k$ is $\varphi$ itself: \newline
+        Then $\varphi \to \varphi_k$ is $\varphi \to \varphi$, and the five-line proof earlier, with $\varphi$ for $p$,
+        proves it from no hypotheses at all, so in particular from $\Gamma$.
+        \begin{deduction}[\Gamma]
+            \dl{(\varphi \to (\varphi \to \varphi) \to \varphi) \to (\varphi \to (\varphi \to \varphi)) \to \varphi \to
+            \varphi}{(II) $[\varphi, \varphi \to \varphi, \varphi]$}
+            \dl{\varphi \to (\varphi \to \varphi) \to \varphi}{(I) $[\varphi, \varphi \to \varphi]$}
+            \dl{(\varphi \to (\varphi \to \varphi)) \to \varphi \to \varphi}{MP 1, 2}
+            \dl{\varphi \to (\varphi \to \varphi)}{(I) $[\varphi, \varphi]$}
+            \dl{\varphi \to \varphi}{MP 3, 4}
+        \end{deduction}
+        
+        \item modus ponens: \newline
+        Then, there are earlier lines $\varphi_j$ and $\varphi_i = \varphi_j \to \varphi_k$. By the induction hypothesis,
+        proofs from $\Gamma$ of $\varphi \to \varphi_j$ and of $\varphi \to \varphi_j \to \varphi_k$ have already been
+        written.
+        \begin{deduction}[\Gamma]
+            \dl{(\varphi \to \varphi_j \to \varphi_k) \to (\varphi \to \varphi_j) \to \varphi \to \varphi_k}{(II) 
+            $[\varphi, \varphi_j, \varphi_k]$}
+            \dl{(\varphi \to \varphi_j) \to \varphi \to \varphi_k}{MP a, $(\varphi \to \varphi_j \to \varphi_k)$}
+            \dl{\varphi \to \varphi_k}{MP b, $(\varphi \to \varphi_j)$}
+        \end{deduction}
+        Three lines, on top of the proofs already written. Only this case uses the IH. Concatenating the pieces in order
+        gives a proof from $\Gamma$ whose last line is $\varphi \to \varphi_n$, that is, $\varphi \to \psi$.
+    \end{enumerate}
+\end{theorem}
+
+\begin{example}[Demonstration: the input]
+    A silly goal, since $p \to q$ was told, but a short run that shows every case. $\Gamma = \{p \to q\}$, the
+    supposition is $\varphi = p$, and the given proof of $q$ from $\Gamma \cup \{p\}$ is:
+    \begin{deduction}[p \to q, p]
+        \dl{p \to q}{hypothesis: a member of $\Gamma$; case 1}
+        \dl{p}{hyptohesis: the supposition itself; case 2}
+        \dl{q}{MP 1, 2: case 3}
+    \end{deduction}
+    The output will be a proof of $p \to q$ from $\Gamma$ alone. Three lines in, one block of output for each.
+
+
+    [line 1, case 1]
+        $\varphi_1 = p \to q$ is a member of $\Gamma$. Write it, weaken it by (I), fire.
+        \begin{deduction}[p \to q]
+            \dl{p \to q}{hypothesis}
+            \dl{(p \to q) \to p \to (p \to q)}{(I) $[p \to q, p]$}
+            \dl{p \to (p \to q)}{MP 2, 1}
+        \end{deduction}
+        Three output lines, ending in $p \to \varphi_1$.
+
+    [line 2, case 2]
+        $varphi_2 = p$ is the supposition itself. Copy in the five line proof of $p \to p$.
+
+    [line 3, case 3]
+        $varphi_3 = q$ acme by modus ponens from lines1 and 2. We hold $p \to (p \to q)$ at ouptut line 3 and $p \to p$.
+        Distribute by (II), fire. 
+        \begin{deduction}[p \to q]
+            \dl{(p \to \ \to q) \to (p \to p) \to p \to q}{(II) $[p, p, q]$}
+            \dl{(p \to p) \to p \to q}{MP 1, $(p \to (p \to q))$}
+            \dl{p \to q}{MP 2, $(p \to p)$}
+        \end{deduction}
+\end{example}
+
+\subsubsection{The missing rule}
+To type a definition $f \, x \, := M$, a checker wants to say: suppose $x$ has type $A$; if supposition $M$ has type $B$
+, then $f$ has type $A \to B$. \\
+\[\Gamma, x: A \vdash M : B \implies \Gamma \vdash f: A \to B\]
+With the programs rubbed out: if $\Gamma \cup \{\varphi\} \vdash \psi$ then $\Gamma \vdash \varphi \to \psi$. That
+\textit{is} the Deduction Theoreom, left to right.
+
+\begin{example}[hypothetical syllogism, by supposing]
+    Suppose write access lets you publish, maintainers have accss, and Smith is a maintainer. Then, he may publish.
+    \begin{deduction}[q \to r, p \to q, p]
+        \dl{q \to r}{hypothesis}
+        \dl{p \to q}{hypothesis}
+        \dl{p}{hypothesis}
+        \dl{q}{MP 2, 3}
+        \dl{r}{MP 1, 4}
+    \end{deduction}
+    \begin{itemize}
+        \item Discharge $p: \{q \to r, p \to q\} \vdash p \to r$
+        \item Discharge $p \to q: \{q \to r\} \vdash (p \to q) \to p \to r$.
+        \item Discharge $q \to r: \vdash (q \to r) \to (p \to q) \to p \to r$
+    \end{itemize}
+\end{example}
+
+\newpage
+
+\subsection{Summary}
+\begin{itemize}
+    \item A \textbf{proof} is a box of formulas, the hypotheses above the line, each line an axiom, a hypothesis, or
+    modus ponens from earlier lines. Checking one is pattern matching: the clerk needs no understanding.
+    \item A \textbf{typing is a proof} with the programs written beside the lines: \textbf{K} and \textbf{S} are the
+    two schemas, application is modus ponens, a variable in the context is a hypothesis. The compiler that refused was
+    refusing a bad proof.
+    \item The rule the compiler needed for a parameter is the \textbf{Deduction Theorem}, $\Gamma \cup \{\varphi\}
+    \vdash \psi$ iff $\Gamma \vdash \varphi \to \psi$, whose proof is the algorithm that compiles the paraemter away.
+    \item When the language grew to \textbf{and, or and not}, seven schemas were added, each the type of a function we
+    know, and neither theorem changed.
+\end{itemize}
+\end{document}
