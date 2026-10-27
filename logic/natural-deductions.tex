@@ -1,0 +1,655 @@
+\documentclass[a4paper, 11pt]{article}
+
+\usepackage[margin=3cm]{geometry} 
+\usepackage{amsthm, amsmath, amssymb}
+\usepackage{array}
+\usepackage{bussproofs}
+\usepackage{booktabs}
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
+\newtheorem{example}[definition]{Example}
+\newtheorem{theorem}[definition]{Theorem}
+\newtheorem{lemma}[definition]{Lemma}
+\newtheorem{prop}[definition]{Proposition}
+
+% change spacing
+\let\olditemize\itemize
+\renewcommand{\itemize}{\olditemize\setlength{\itemsep}{0pt}\setlength{\parsep}{0pt}}
+\let\oldenumerate\enumerate
+\renewcommand{\enumerate}{\oldenumerate\setlength{\itemsep}{0pt}\setlength{\parsep}{0pt}}
+
+% hilbert proofs
+\newcounter{dline}
+\newenvironment{deduction}[1][\textit{no hypotheses}]
+    {\setcounter{dline}{0}%
+     \[\begin{array}{r|l@{\qquad}l}
+     & #1 \\ \cline{2-2}}
+    {\end{array}\]}
+\newcommand{\dl}[2]{\stepcounter{dline}\thedline & #1 & \text{#2} \\}
+
+% tables
+\newenvironment{comparison}[4][p{0.22\textwidth} p{0.36\textwidth} p{0.36\textwidth}]
+    {\setcounter{factrow}{0}%
+     \begin{center}
+     \begin{tabular}{#1}
+     \textsc{#2} & \textsc{#3} & \textsc{#4} \\[4pt]}
+    {\end{tabular}
+     \end{center}}
+
+
+\begin{document}
+
+\section{Natural Deduction}
+
+\subsection{From axioms to rules}
+
+\subsubsection{Reading (pair) backwards}
+The schema (pair) is an axiom, and an axiom is a one-line proof, so $\Gamma \vdash \varphi \to (\psi \to \varphi \land \psi)$
+for every $\Gamma$ at all. Recall the Deduction Theorem: $\Gamma, \varphi \vdash \chi$ exactly when $\Gamma \vdash \varphi \to \chi$.
+Apply it twice:
+\begin{align*}
+                & \Gamma \vdash \varphi \to (\psi \to \varphi \land \psi), \\
+    \text{so}\quad & \Gamma, \varphi \vdash \psi \to \varphi \land \psi. \\
+    \text{so}\quad & \Gamma, \varphi, \psi \vdash \varphi \land \psi. 
+\end{align*}
+The arrows have come out of the formula and gone above the line, among the hypotheses. $\Gamma, \varphi$ is short for
+$\Gamma \cup \{\varphi\}$.
+
+\subsubsection{Splice in the proofs}
+Now suppose Baker has proved both halves, $\Gamma \vdash \varphi$ and $\Gamma \vdash \psi$. Transitivity says a hypothesis
+you can prove may be replaced by its proof, so she splices each proof in for its hypothesis. What is left is:
+\[\text{if } \Gamma \vdash \varphi \text{ and } \Gamma \vdash \psi, \text{ then } \Gamma \vdash \varphi \land \psi\]
+The axiom has become a rule: something you do rather than something we're told.
+
+\begin{prop}[derived rules]
+    For all sets of formula $\Gamma$ and all formulas $\varphi, \psi, \chi$ in the Hilbert system:
+    \begin{enumerate}
+        \item if $\varphi \in \Gamma$ then $\Gamma \vdash \varphi$ (reflexivity);
+        \item if $\Gamma \vdash \varphi \to \psi$ and $\Gamma \vdash \varphi$ then $\Gamma \vdash \psi$ (modus ponens);
+        \item if $\Gamma, \varphi \vdash \psi$ then $\Gamma \vdash \varphi \to \psi$ (the Deduction Theorem);
+        \item if $\Gamma \vdash \varphi$ and $\Gamma \vdash \psi$ then $\Gamma \vdash \varphi \land \psi$ (from (pair));
+        \item if $\Gamma \vdash \varphi \land \psi$ then $\Gamma \vdash \varphi$ (from (fst));
+        \item if $\Gamma \vdash \varphi \land \psi$ then $\Gamma \vdash \psi$ (from (snd));
+        \item if $\Gamma \vdash \varphi$ then $\Gamma \vdash \varphi \lor \psi$; (from (left));
+        \item if $\Gamma \vdash \psi$ then $\Gamma \vdash \varphi \lor \psi$; (from (right);
+        \item if $\Gamma \varphi \lor \psi$, and $\Gamma, \varphi \vdash \chi$, and $\Gamma, \psi \vdash \chi$,
+        then $\Gamma \vdash \chi$ (from (absurd));
+        \item if $\Gamma \vdash \varphi$ then $\Gamma \vdash \psi \to \varphi$; and if $\Gamma \vdash \varphi \to \psi
+        \to \chi$ and $\Gamma \vdash \varphi \to \psi$ then $\Gamma \vdash \varphi \to \chi$. (from (I), (II))
+    \end{enumerate}
+\end{prop}
+
+\subsubsection{Two facts that discharge}
+IN two of the facts, a hypothesis appears in the condition and is gone from the conclusion.
+\[\text{if } \Gamma, \varphi \vdash \psi \text{ then } \Gamma \vdash \varphi \to \psi \]
+\[\text{if } \Gamma \vdash \varphi \lor \psi, \text{ and } \Gamma, \varphi \vdash \chi, \text{ and } \Gamma, \psi \vdash
+\chi, \text{ then } \Gamma \vdash \chi\]
+
+\subsubsection{A fact, drawn as a bar}
+The fact, about the Hilbert System:
+\begin{prooftree}
+    \AxiomC{$\Gamma \vdash \varphi$}
+    \AxiomC{$\Gamma \vdash \psi$}
+    \BinaryInfC{$\Gamma \vdash \varphi \land \psi$}
+\end{prooftree}
+Gentzen's Bar:
+\begin{prooftree}
+    \AxiomC{$\varphi$}
+    \AxiomC{$\psi$}
+    \RightLabel{$\land$I}
+    \BinaryInfC{$\varphi \land \psi$}
+\end{prooftree}
+Premises above, conclusion below, the rule on the right. The $\Gamma$ is not written, it is whatever sits at the leaves.
+
+\begin{itemize}
+    \item A proof is a \textbf{tree}. Each bar is one of the facts, drawn as a rule.
+    \item A leaf is \textbf{open} until a bar below it pays for it, and only two kinds of bar can:
+    $(\to \text{I})$ and $(\land \text{E})$.
+    \item What the tree proves is its \textbf{root}, \textit{from} its open leaves. 
+\end{itemize}
+
+\subsection{Derivations as trees}
+
+\begin{definition}[derivations]
+    The derivations are defined inductively, and with each derivation $\mathcal{D}$ we define its conclusion, the
+    formula at the root, and its set of open hypotheses $\mathsf{OH}(\mathcal{D})$, a finite set of formulas.
+    \begin{enumerate}
+        \item (hypothesis) For every formula $\varphi$, the one-node tree $\varphi$ is a derivation, with conclusion
+        $\varphi$ and $\mathsf{OH} = \{\varphi\}$
+        \item ($\to \text{I}$) If $\mathcal{D}$ has conclusion $\psi$, then for every formula $\varphi$,
+        \[
+            \AxiomC{$[\varphi]$}
+            \noLine
+            \UnaryInfC{$\mathcal{D}$}
+            \noLine
+            \UnaryInfC{$\psi$}
+            \RightLabel{\scriptsize $\to$I}
+            \UnaryInfC{$\varphi \to \psi$}
+            \DisplayProof
+            \qquad \text{is a derivation,} \qquad
+            \mathsf{OH} = \mathsf{OH}(\mathcal{D}) \setminus \{\varphi\}.
+        \]
+        \item ($\to$E) If $\mathcal{D}_1$ has conclusion $\varphi \to \psi$ and $\mathcal{D}_2$ has conclusion $\varphi$, then
+        \[
+            \AxiomC{$\mathcal{D}_1$}
+            \noLine
+            \UnaryInfC{$\varphi \to \psi\strut$}
+            \AxiomC{$\mathcal{D}_2$}
+            \noLine
+            \UnaryInfC{$\varphi\strut$}
+            \RightLabel{\scriptsize $\to$E}
+            \BinaryInfC{$\psi$}
+            \DisplayProof
+            \qquad \text{is a derivation,} \qquad
+            \mathsf{OH} = \mathsf{OH}(\mathcal{D}_1) \cup \mathsf{OH}(\mathcal{D}_2).
+        \]
+        \item ($\land$I) If $\mathcal{D}_1$ concludes $\varphi$ and $\mathcal{D}_2$ concludes $\psi$, then
+        \[
+            \AxiomC{$\mathcal{D}_1$}
+            \noLine
+            \UnaryInfC{$\varphi\strut$}
+            \AxiomC{$\mathcal{D}_2$}
+            \noLine
+            \UnaryInfC{$\psi\strut$}
+            \RightLabel{\scriptsize $\land$I}
+            \BinaryInfC{$\varphi \land \psi$}
+            \DisplayProof
+            \qquad \text{is a derivation,} \qquad
+            \mathsf{OH} = \mathsf{OH}(\mathcal{D}_1) \cup \mathsf{OH}(\mathcal{D}_2).
+        \]
+        \item ($\land$E) If $\mathcal{D}$ concludes $\varphi \land \psi$, then
+        \[
+            \AxiomC{$\mathcal{D}$}
+            \noLine
+            \UnaryInfC{$\varphi \land \psi$}
+            \RightLabel{\scriptsize $\land\mathsf{E}_1$}
+            \UnaryInfC{$\varphi$}
+            \DisplayProof
+            \qquad \text{and} \qquad
+            \AxiomC{$\mathcal{D}$}
+            \noLine
+            \UnaryInfC{$\varphi \land \psi$}
+            \RightLabel{\scriptsize $\land\mathsf{E}_2$}
+            \UnaryInfC{$\psi$}
+            \DisplayProof
+        \] 
+        \item ($\lor$I) If $\mathcal{D}$ concludes $\varphi$, then for every formula $\psi$ the tree with root $\varphi
+        \lor \psi$ and immediate subtree $\mathcal{D}$ is a derivation, labelled $\lor I_1$; symmetrically from a
+        derivation of $\psi$, labelled $\lor I_2$. In both cases $\mathsf{OH} = \mathsf{OH}(\mathcal{D})$.
+        \item ($\lor$E) If $\mathcal{D}_0$ concludes $\varphi \lor \psi$, and $\mathcal{D}_1$ and $\mathcal{D}_2$ both
+        conclude $\chi$, then
+        \[
+            \AxiomC{$\mathcal{D}_0$}
+            \noLine
+            \UnaryInfC{$\varphi \lor \psi\strut$}
+            \AxiomC{$[\varphi]$}
+            \noLine
+            \UnaryInfC{$\mathcal{D}_1$}
+            \noLine
+            \UnaryInfC{$\chi\strut$}
+            \AxiomC{$[\psi]$}
+            \noLine
+            \UnaryInfC{$\mathcal{D}_2$}
+            \noLine
+            \UnaryInfC{$\chi\strut$}
+            \RightLabel{\scriptsize $\lor\mathsf{E}$}
+            \TrinaryInfC{$\chi$}
+            \DisplayProof
+        \]
+        \item ($\bot$E) If $\mathcal{D}$ concludes $\bot$, then for every formula $\chi$ the tree with root $\chi$ and
+        immediate subtree $\mathcal{D}$ is a derivation, with $\mathsf{OH} = \mathsf{OH}(\mathcal{D})$.
+        \item Nothing else is a derivation.
+    \end{enumerate}
+
+    We write $\Gamma \vdash_N \varphi$, and say that $\varphi$ is \textit{derivable from} $\Gamma$ when \textbf{some}
+    derivation has conclusion $\varphi$ and all its open hypotheses in $\Gamma$: $\mathsf{OH} \subseteq \Gamma$. Such a
+    derivation witnesses $\Gamma \vdash_N \varphi$. Negation is an abbreviation as before: $\neg \varphi$ is $\varphi
+    \to \bot$, and has no rules of its own.
+\end{definition}
+
+\subsection{Equivalence with the Hilbert system}
+\begin{theorem}[equivalence with the Hilbert System]
+    We can now state the theorem promised at the start of the chapter. NJ has no axioms and nine rules; the Hilbert
+    system has nine schemas and one rule. They prove the same things.
+    \\
+    For every set of formulas $\Gamma$ and every formula $\varphi$ built from letters and $\bot$ with $\to, \land$ and
+    $\lor$:
+    \[
+        \Gamma \vdash_N \varphi \text{ if and only if } \Gamma \vdash \varphi 
+    \]
+    The slides contain the proofs. Reference them if required.
+\end{theorem}
+
+\subsection{The $\lambda$-calculus}
+What we had: A Hilbert proof is a typed combinator program with the program rubbed out: (I) is \textbf{K}, (II) is
+\textbf{S}, a hypothesis is a variable, modus ponens is application. \\
+What has changed: We have changed what a proof is: a tree, with suppositions that are made and then discharged. So what
+is the matching notion of a \textbf{typed program}?
+
+\subsubsection{The Deduciton Theorem, as a program}
+The new proofs have one move the Hilbert system lacks as a rule: discharge, the Deduction Theorem. The new programs need
+a term constructor for it. \\
+The Deduction Theorem:
+\begin{prooftree}
+    \AxiomC{$\Gamma, \, A \vdash B$}
+    \UnaryInfC{$\Gamma \vdash A \to B$}
+\end{prooftree}
+With the programs written on:
+\begin{prooftree}
+    \AxiomC{$\Gamma, x: A \vdash M : B$}
+    \UnaryInfC{$\Gamma, \vdash \lambda x. M : A \to B$}
+\end{prooftree}
+Above the line, a program $M$ with a parameter $x:A$; below, the function \texttt{$\backslash$x -> M}.
+
+\newpage
+\begin{definition}[$\lambda$-terms]
+    Fix a stock of variables $x, y, z, f, \dots$. The terms are defined inductively: 
+    \begin{enumerate}
+        \item every variable $x$ is a term;
+        \item if $M$ and $N$ are terms then $M \, N$ is a term, the application of $M$ to $N$;
+        \item if $x$ is a variable and $m$ is a term then $\lambda x. M$ is a term, the abstraction of $M$ over $x$: the
+        function that takes $x$ and returns $M$; 
+        \item nothing else is a term.
+    \end{enumerate}
+    In one line:
+    \[M, N \, ::= \quad x \quad | \quad M \, N \quad | \quad \lambda x.M\]
+    Application groups to the left. A $\lambda$ reaches as far right as it can: $\lambda x. M \, N$ is $\lambda x. (M \, N)$.
+\end{definition}
+
+\subsubsection{Free variables}
+The $\lambda$ in $\lambda x. M$ \textit{binds} the parameter $x$; its \textit{scope} is the body $M$. An occurrence of a
+variable is bound if it lies in the scope of a $\lambda$ on that variable, and free otherwise. A term with no free
+variables is closed: a whole program. A bound variable may be renamed at will.
+
+\subsubsection{Substitution}
+$M(N/x)$ replaces the free occurrences of $x$ in $M$ by $N$, and nothing else. With binders about, that takes care.
+\begin{enumerate}
+    \item $x(N/x) = N$
+    \item $y(N/x) = y$, for $y$ other than $x$
+    \item $(M_1 M_2)(N/x) = M_1(N/x)M_2(N/x)$
+    \item $(\lambda x. M_1)(N/x) = \lambda x. M_1$ (every $x$ inside is bound)
+    \item $(\lambda y. M_1)(N/x) = \lambda y. M_1(N/x)$, \textbf{provided} $y \not \in \mathsf{FV}(N)$
+\end{enumerate}
+The side condition on clause 5 is the one subtlety. Pushing $N$ under a $\lambda y$ when $y$ is free in $N$ would capture
+that $y$ and change what $N$ means. Rename it first.
+
+\begin{example}[capture]
+    Compute $(\lambda y. x \, y)(y/x)$: the function that applies $x$ to its argument, with $y$ put for $x$. The answer
+    ought to be the function that applies $y$ to its argument.
+
+    Blindly: $\lambda y. y\, y$; the free $y$ has been caught by the $\lambda y$: a function that applies its argument
+    to itself. Incorrect.
+
+    Renaming first: $(\lambda z. x \, z)(y/z) = \lambda z. y \, z$; The function that applies $y$ to its argument. Correct.
+\end{example}
+
+\subsubsection{Reduction}
+There is one rule of computation. To apply a function to an argument, substitute the argument for the parameter, anywhere
+inside a term:
+\[(\lambda x. M) N \leadsto M(N/x)\]
+The pair on the left is a redex, and the step is called $\beta$. That's what a function call does, and it's all a function
+call does. A term with no redex is in normal form.
+
+\begin{theorem}[the Church-Rosser theorem (again)]
+    If $M \leadsto^* N_1$ and $M \leadsto^* N_2$, then there is a term $P$ such that $N_1
+    \leadsto^* P$ and $N_2 \leadsto^* P$. So, a term has at most one normal form.
+\end{theorem}
+
+\begin{example}[running terms]
+    Not every terms reaches a normal form: nothing in the definition says what may be applied to what. \\
+    A numeral, applied: 
+    \begin{align*}
+        &(\lambda f. \lambda x. f (f \, x)) g \, a \\
+        \leadsto &(\lambda x. g(g \, x)) a \\
+        \leadsto & g(g \, a)
+    \end{align*}
+    A term that never stops:
+    With $\omega$ for $\lambda x. x \, x$:
+    \begin{align*}
+        \Omega &= \omega \omega \\
+        &\leadsto (x \, x)(\omega/x) = \omega \omega \\
+        &\leadsto \omega \omega \leadsto \dots
+    \end{align*}
+\end{example}
+
+\subsubsection{The combinators are terms}
+\[\textbf{K} := \lambda x. \lambda y. x\]
+$\textbf{K}\,M\,N \leadsto M$ is two $\beta$ steps: $(\lambda x. \lambda y.\, x) M \, N \leadsto 
+(\lambda y. \,M) N \leadsto M$
+
+\[\textbf{S} := \lambda x. \lambda y. \lambda z. \, x \,z (y \, z)\]
+$\textbf{S} \, M \, N \, P \leadsto M \, P (N \, P)$ is three $\beta$ steps: one for each parameter. So every
+combinator term is a $\lambda$-term, and the two constants need no longer be taken as given.
+
+\begin{theorem}[translation into combinators]
+    Every $\lambda$-term $M$ translates to a term $M^\circ$ built from \textbf{K}, \textbf{S}, variables and applications,
+    with no $\lambda$ in it, such that $M^\circ$ has the same free variables as $M$ and does the same thing to every
+    argument: if $M$ is $\lambda x. P$ then $M^\circ N \leadsto^* P^\circ (N/x)$ for every $N$. \\ Conversely,
+    every combinator term is a $\lambda$-term. \\
+    The translation: translate the innermost abstractions first. For a term $P$ containing no $\lambda$, define $[x]P$,
+    ``$P$ abstracted over $x$'', by recursion on $P$:
+    \begin{alignat*}{2}
+        [x]P &= \mathsf{K}\,P && \qquad \text{if $x$ does not occur in $P$,} \\
+        [x]x &= \mathsf{S}\,\mathsf{K}\,\mathsf{K}, && \\
+        [x](P_1\,P_2) &= \mathsf{S}\,([x]P_1)\,([x]P_2) && \qquad \text{otherwise.}
+    \end{alignat*}
+    Then, $[x]P$ contains no $\lambda$ and no $x$, and $([x]P) N \leadsto^* P(N/x)$ for every term $N$. Then replace
+    an innermost $\lambda x. \, P$ by $[x]P$, and repeat until no $\lambda$ is left. \\
+\end{theorem}
+
+\begin{example}[compiling $\lambda x. \, f \, x$]
+    $f \, x$ is an application in which $x$ occurs, so the third clause applies; then the first clause for $f$, the
+    second for $x$. Write \textbf{I} for \textbf{S K K}.
+    \[[x](f \, x) = \textbf{S}([x]f)([x]x) = \textbf{S}(\textbf{K} \, f) \textbf{I}\] \\
+    Check: applying it to $N$:
+    \[\textbf{S}(\textbf{K} \, f)\textbf{I} \, N \leadsto \textbf{K} \, f \, N (\textbf{I} \, N) \leadsto f 
+    (\textbf{I} \, N) \leadsto^* f \, N\]
+\end{example}
+
+\begin{theorem}[Turing completeness]
+    Every function a Turing machine computes is computed by a closed $\lambda$-term, and every function a closed $\lambda$-term
+    computes is computed by a Turing machine.
+\end{theorem}
+
+\subsection{The simply typed $\lambda$-calculus}
+
+\subsubsection{The Monster, in $\lambda$ notation}
+The function that applies its argument to itself, applied to itself, runs forever:
+\[\Omega = (\lambda x. \, x \, x)(\lambda x. \, x \, x) \leadsto (\lambda x. \, x \, x)(\lambda x. \, x \, x)
+\leadsto \dots\]
+    
+\subsubsection{Three rules}
+Types, contexts and judgements are those of the combinator checker: $\Gamma \vdash M: A$ says $M$ has type $A$ when its
+variables have types $\Gamma$ gives them. Two rules are the checker's own. The third is the Deduction Theorem, adopted
+as a rule with the program written on.\\
+(var):
+\begin{prooftree}
+    \AxiomC{}
+    \RightLabel{\scriptsize (\textsf{var}) if $x : A$ is in $\Gamma$}
+    \UnaryInfC{$\Gamma \vdash x : A$}
+\end{prooftree}
+(app):
+\begin{prooftree}
+    \AxiomC{$\Gamma \vdash M: A \to B$}
+    \AxiomC{$\Gamma \vdash N:A$}
+    \RightLabel{(app)}
+    \BinaryInfC{$\Gamma \vdash M \, N : B$}
+\end{prooftree}
+(abs):
+\begin{prooftree}
+    \AxiomC{$\Gamma, x: A \vdash M:B$}
+    \RightLabel{(abs)}
+    \UnaryInfC{$\Gamma \vdash \lambda x. \, M: A \to B$}
+\end{prooftree}
+Read (abs) as the checker reads a function definition: add the parameter to the context, check the body, give the
+function the arrow type.
+
+\subsubsection{Typings are trees now}
+Rule (abs) changed the context, so a typing is now a tree whose every node is a whole judgement, context included:
+natural deduction in sequent style.
+
+\begin{example}[function composition, the body]
+    The typing of a program we've written in one form or another: \texttt{\textbackslash f -> \textbackslash g
+     -> \textbackslash x -> f(g x)}. The body is checked in the context $f:B \to C, g: A \to B, x : A$:
+    \\ \textbf{Step 1}:
+    \begin{prooftree}
+        \AxiomC{}
+        \RightLabel{var}
+        \UnaryInfC{$f : B \to C,\ g : A \to B,\ x : A \vdash g : A \to B$}
+        \AxiomC{}
+        \RightLabel{var}
+        \UnaryInfC{$f : B \to C,\ g : A \to B,\ x : A \vdash x : A$}
+        \RightLabel{app}
+        \BinaryInfC{$f : B \to C,\ g : A \to B,\ x : A \vdash g\,x : B$}
+    \end{prooftree} 
+    \textbf{Step 2, using Step 1}:
+    \begin{prooftree}
+        \AxiomC{}
+        \RightLabel{var}
+        \UnaryInfC{$f: B \to C, g: A \to B,\ x : A \vdash g : A \to B$}
+        \AxiomC{(1)\ $f : B \to C,\ g : A \to B,\ x : A \vdash g\,x : B$}
+        \RightLabel{app}
+        \BinaryInfC{$f : B \to C,\ g : A \to B,\ x : A \vdash f\,(g\,x) : C$}
+    \end{prooftree}
+    Three look-ups and two uses of (app), each matching an argument's type against the type a function expects.
+    \\ \textbf{Step 3: three abstractions}
+    \begin{prooftree}
+        \AxiomC{$f: B \to C, g: A \to B, x: A \vdash f(g \, x) : C$}
+        \RightLabel{abs}
+        \UnaryInfC{$f: B \to C, g: A \to B \vdash \lambda x. f(g \, x): A \to C$}
+        \RightLabel{abs}
+        \UnaryInfC{$f: B \to C \vdash \lambda g. \lambda x. f(g \, x): (A \to B) \to A \to C$}
+        \RightLabel{abs}
+        \UnaryInfC{$\vdash \lambda f. \lambda g. \lambda x. f(g\, x): (B \to C) \to (A \to B) \to A \to C$}
+    \end{prooftree}
+    \begin{itemize}
+        \item The top is a proof of $C$ from $B \to C, A \to B$ and $A$, by use of modus ponens.
+        \item The three (abs) bars discharge $A$, then $A \to B$, then $B \to C$.
+        \item The first discharge alone gives $A \to C$ from $B \to C$ and $A \to B$: hypothetical syllogism, the rule
+        that chains two implications.
+        \[\vdash (B \to C) \to (A \to B) \to A \to C\]
+        Hypothetical syllogism as a theorem, with nothing assumed. The compiler read our composition function as that
+        proof.
+    \end{itemize}
+\end{example}
+
+\begin{definition}[pairs, the empty type, sums, reading $(+E)$]
+    $A \times B$ is the pair type \texttt{(A, B);} $\bot$ is the type with no constructor, \texttt{Void}, of which
+    there are no values; $\neg A$ is $A \to \bot$.
+    \begin{prooftree}
+        \AxiomC{$\Gamma \vdash M : A$}
+        \AxiomC{$\Gamma \vdash N : B$}
+        \RightLabel{$(\times I)$}
+        \BinaryInfC{$\Gamma \vdash (M, N) : A \times B$}
+    \end{prooftree}
+
+    \begin{prooftree}
+        \AxiomC{$\Gamma \vdash M : \bot$}
+        \RightLabel{$(\bot E)$}
+        \UnaryInfC{$\Gamma \vdash \text{absurd} \, M :C$}
+    \end{prooftree}
+
+    \begin{prooftree}
+        \AxiomC{$\Gamma \vdash M : A \times B$}
+        \RightLabel{$(\times E_1)$}
+        \UnaryInfC{$\Gamma \vdash \text{fst} \, M : A$}
+    \end{prooftree}
+
+    \begin{prooftree}
+        \AxiomC{$\Gamma \vdash M : A \times B$}
+        \RightLabel{$(E_2)$}
+        \UnaryInfC{$\Gamma \vdash \text{snd} \, M : B$}
+    \end{prooftree}
+    To build an $A + B$ we build both halves; to use one we take whichever half we need. Nothing builds a $\bot$, if we
+    have one, we can conclude anything: \texttt{absurd :: Void -> a}.
+
+    $A + B$ is the sum type, \texttt{Either A B}:
+    \begin{prooftree}
+        \AxiomC{$\Gamma \vdash M : A$}
+        \RightLabel{$(+I_1)$}
+        \UnaryInfC{$\Gamma \vdash \text{Left} \, M : A + B$}
+    \end{prooftree}
+
+    \begin{prooftree}
+        \AxiomC{$\Gamma \vdash M : B$}
+        \RightLabel{$(+I_2)$}
+        \UnaryInfC{$\Gamma \vdash \text{Right} \, M : A + B$}
+    \end{prooftree}
+
+    \begin{prooftree}
+        \AxiomC{$\Gamma \vdash M:A$}
+        \AxiomC{$\Gamma, x: A \vdash P : C$}
+        \AxiomC{$\Gamma, y : B \vdash Q : C$}
+        \RightLabel{$(+E)$}
+        \TrinaryInfC{$\Gamma \vdash \text{ case } M \text{ of } \{\mathit{Left} \, x \implies P | \mathit{Right} \, y \implies Q \} : C$}
+    \end{prooftree}
+    To build an $A + B$ we build one side and say which, to use one we argue by cases. On the page the pseudocode goes
+    on one line, its two branches between braces: \[\text{case } M \text{ of } \{\mathit{Left} \, x \implies P | \mathit{Right} \, y 
+    \implies Q \} : C\]
+    \begin{itemize}
+        \item $M: A + B$: a tagged value to look at;
+        \item $x: A$ in $P$ only, $y : B$ in $Q$ only: each branch has its own variable.
+        \item $P : C$ and $Q: C$ only one runs, and what follows can't know which.
+    \end{itemize}
+\end{definition}
+
+\subsubsection{The central table}
+\begin{center}
+    \begin{tabular}{@{} l l l l @{}}
+        \toprule
+        \textbf{Connective} & \textbf{Type} & \textbf{Introduction} & \textbf{Elimination} \\
+                            &               & \textbf{(constructor)} & \textbf{(pattern match)} \\
+        \midrule
+        $A \to B$  & $A \to B$, \texttt{A -> B}        & $\lambda x.\, M$ & application $M\,N$ \\
+        $A \land B$ & $A \times B$, \texttt{(A, B)}    & $(M, N)$         & $\mathit{fst}$, $\mathit{snd}$ \\
+        $A \lor B$ & $A + B$, \texttt{Either A B}      & $\mathit{Left}\,M$, & \texttt{case} with two branches \\
+                &                                   & $\mathit{Right}\,M$ & \\
+        $\bot$     & $\bot$, \texttt{Void}             & ---              & $\mathit{absurd}$ \\
+        $\neg A$   & $A \to \bot$, \texttt{A -> Void}  & $\lambda x.\, M$ & application \\
+        \bottomrule
+    \end{tabular}
+\end{center}
+The connectives of logic are the data types of a programming language; the introduction rules are their constructors,
+and the elimination rules are the pattern matches that take them apart.
+
+\begin{example}[swapping a pair]
+    $A \land B \to B \land A$ is a theorem, and here is the program that proves it: $\lambda p. (\mathit{snd} \, p, 
+    \mathit{fst} \, p): A \times B \to B \times A$. 
+    \begin{prooftree}
+        \AxiomC{}
+        \RightLabel{\scriptsize var}
+        \UnaryInfC{$p : A \times B \vdash p : A \times B$}
+        \RightLabel{\scriptsize $\times$E$_2$}
+        \UnaryInfC{$p : A \times B \vdash \mathit{snd}\, p : B$}
+        \AxiomC{}
+        \RightLabel{\scriptsize var}
+        \UnaryInfC{$p : A \times B \vdash p : A \times B$}
+        \RightLabel{\scriptsize $\times$E$_1$}
+        \UnaryInfC{$p : A \times B \vdash \mathit{fst}\, p : A$}
+        \RightLabel{\scriptsize $\times$I}
+        \BinaryInfC{$p : A \times B \vdash (\mathit{snd}\, p,\ \mathit{fst}\, p) : B \times A$}
+        \RightLabel{\scriptsize abs}
+        \UnaryInfC{$\vdash \lambda p.\, (\mathit{snd}\, p,\ \mathit{fst}\, p) : A \times B \to B \times A$}
+    \end{prooftree}
+\end{example}
+
+\begin{example}[contraposition]
+    $(A \to B) \to (\neg A \to \neg B)$: the program is $\lambda f. \lambda k. \lambda a. k(f \, a)$. Its body, typed in
+    the context $f: A \to B, k : B \to \bot, a : A$: \\
+    \textbf{Step 1}:
+    \begin{prooftree}
+        \AxiomC{}
+        \RightLabel{\scriptsize var}
+        \UnaryInfC{$f : A \to B,\ k : B \to \bot,\ a : A \vdash f : A \to B$}
+        \AxiomC{}
+        \RightLabel{\scriptsize var}
+        \UnaryInfC{$f : A \to B,\ k : B \to \bot,\ a : A \vdash a : A$}
+        \RightLabel{\scriptsize app}
+        \BinaryInfC{$f : A \to B,\ k : B \to \bot,\ a : A \vdash f\, a : B$}
+    \end{prooftree}
+    \textbf{Step 2, using Step 1}:
+    \begin{prooftree}
+        \AxiomC{}
+        \RightLabel{\scriptsize var}
+        \UnaryInfC{$f : A \to B,\ k : B \to \bot,\ a : A \vdash k : B \to \bot$}
+        \AxiomC{{\scriptsize (1)}\ $f : A \to B,\ k : B \to \bot,\ a : A \vdash f\, a : B$}
+        \RightLabel{\scriptsize app}
+        \BinaryInfC{$f : A \to B,\ k : B \to \bot,\ a : A \vdash k\, (f\, a) : \bot$}
+    \end{prooftree}
+    Three uses of (abs) give $(A \to B) \to (B \to \bot) \to A \to \bot$.
+\end{example}
+
+\begin{example}[swapping a union]
+    $A \lor B \to B \lor A$: \[\lambda s. \textbf{ case } s \textbf{ of } \{\mathit{Left} \, a \implies \mathit{Right}
+    \, a | \mathit{Right} \, b \implies \mathit{Left} \, b\}\]
+    The two branch variables $a$, $b$ are the two leaves $[p]^2$ and $[q]^3$ of the tree we drew for this formula, with
+    $A$, $B$ for its $p$, $q$ each in scope only in its own branch. 
+\end{example}
+
+\begin{theorem}[Curry-Howard]
+    In one line: $\Gamma \vdash M : A$ for some term $M$ if and only if $|\Gamma| \vdash A$.
+
+    \begin{enumerate} 
+        \item \textbf{(Erasure)} Take a typing of $Gamma \vdash M:A$, delete every term, and write $\land$ for $\times$,
+        $lor$ for $+$. Then (var) becomes a hypothesis, (app) an $\to E$ bar, (abs) an $\to I$ bar, and so on. The
+        result is a derivation of $A$ with open hypotheses among $| \Gamma |$, the types declared in $\Gamma$.
+        \item \textbf{(Decoration)} Take a derivation of $A$, write $\times$ for $\land$, $+$ for $\lor$, choose a
+        variable for each hypothesis, and write terms upwards from the leaves: a variable at each leaf, an application
+        at each $\to E$, a $\lambda$ at each $\to I$, a constructor or pattern match at each other bar. The result is a 
+        typing of $\Gamma \vdash M:A$, with $\Gamma$ declaring open hypotheses.
+    \end{enumerate}
+    \textbf{why:} \\
+    Put the typing rules beside the clauses that define derivations. Rule for clause, each derivation clause is the
+    typing rule with the terms removed and the two symbols renamed: premises, conclusions, and what each takes out of 
+    the context or out of OH are otherwise identical.
+    \begin{align*}{2}
+        \text{FV} (\lambda x. M) &= \text{FV}(M) \backslash \{x\} &\text{(a )} \lambda \text{ binds its variable} \\
+        \text{OH} &= \text{OH}(\mathcal{D}) \backslash \{ \text{A} \} &\text{an } \to I \text{ bar discharges its formula}
+    \end{align*}
+    The theorem says that a derivation in Gentzen's system and a typing of a program with parameters, pairs, unions and
+    \texttt{case} are the same \textbf{same tree with a column added}; and that the rule which puts a parameter in
+    scope and takes it out again is, column removed, the rule for supposing and discharging. \\
+\end{theorem}
+
+\subsection{Normalisation and consistency}
+
+\subsubsection{Detours}
+A detour, in Gentzen's word, is an introduction met at once by its own elimination: prove $A \to B$ by $\to I$, then at
+once use it on a proof $\varepsilon$ of $A$. The proof is shorter without the pair:
+
+\begin{center}
+    \AxiomC{$[A]$}
+    \noLine
+    \UnaryInfC{$\mathcal{D}$}
+    \noLine
+    \UnaryInfC{$B$}
+    \RightLabel{\scriptsize $\to$I}
+    \UnaryInfC{$A \to B$}
+    \AxiomC{$\mathcal{E}$}
+    \noLine
+    \UnaryInfC{$A$}
+    \RightLabel{\scriptsize $\to$E}
+    \BinaryInfC{$B$}
+    \DisplayProof
+    \qquad becomes \qquad
+    \AxiomC{$\mathcal{E}$}
+    \noLine
+    \UnaryInfC{$A$}
+    \noLine
+    \UnaryInfC{$\mathcal{D}$}
+    \noLine
+    \UnaryInfC{$B$}
+    \DisplayProof
+\end{center}
+A copy of $\varepsilon$ goes in place of every leaf $[A]$ of $\mathcal{D}$, and the two bars go.
+
+\begin{definition}[$\beta$-reduction, for the whole language]
+    A step rewrites an introduction met by its elimination, anywhere inside a term; by cases on the shape of $M$:
+    % preamble: \usepackage{amsmath, amssymb}
+\[
+\begin{cases}
+    (\lambda x.\, P)\, Q \leadsto P[Q/x], \\
+    \mathit{fst}\,(P, Q) \leadsto P \quad\text{and}\quad \mathit{snd}\,(P, Q) \leadsto Q, \\
+    \mathbf{case}\ (\mathit{Left}\, R)\ \mathbf{of}\ \{\, \mathit{Left}\, x \Rightarrow P \mid \mathit{Right}\, y \Rightarrow Q \,\} \leadsto P[R/x], \\
+    \mathbf{case}\ (\mathit{Right}\, R)\ \mathbf{of}\ \{\, \mathit{Left}\, x \Rightarrow P \mid \mathit{Right}\, y \Rightarrow Q \,\} \leadsto Q[R/y],
+\end{cases}
+\]
+and a step inside a term is a step of the term. There is no line for \textit{absurd}: $\bot$ has no introduction
+for it to meet. A term in which no step can be taken is in normal form; through Curry-Howard, a derivation with no detour
+is a normal derivation.
+\end{definition}
+
+\begin{theorem}[subject reduction]
+    If $\Gamma \vdash M : A$ and $M \leadsto N$, then $\Gamma \vdash N : A$. \textit{Proof sketch}. One new ingredient,
+    a substitution lemma: if $\Gamma, x : A \vdash M : B$ and $\Gamma \vdash N : A$, then $\Gamma \vdash M[N/x]:B$.
+    Go down the typing of $M$ and replace every (var) line for $x$ by the typing of $N$. ON the proof side is transitivity. \\
+    Then one case per step. For $\beta \, (\lambda. x. M) N: B$ came by (app) from $\lambda x. M : A \to B$ and $N : A$;
+    the first came by (abs) from $\Gamma, x : A \vdash M : B$; the lemma gives $M[N/x]:B$
+\end{theorem}
+
+
+
+
+
+\end{document}
