@@ -12,6 +12,7 @@
 \newtheorem{theorem}[definition]{Theorem}
 \newtheorem{lemma}[definition]{Lemma}
 \newtheorem{prop}[definition]{Proposition}
+\newtheorem{corollary}[definition]{Corollary}
 
 % change spacing
 \let\olditemize\itemize
@@ -648,8 +649,73 @@ is a normal derivation.
     the first came by (abs) from $\Gamma, x : A \vdash M : B$; the lemma gives $M[N/x]:B$
 \end{theorem}
 
+\begin{theorem}[normalisation]
+    Every typed term runs to a normal form. Equivalently: every derivation can be rewritten, by removing detours, into
+    a normal derivation of the same formula from the same open hypotheses. 
+\end{theorem}
 
+\begin{definition}[normal and neutral terms]
+    A typed term is neutral if it is a variable, or an elimination applied to a neutral term: \[
+    N \, M, \qquad \mathit{fst} N, \qquad \mathit{snd} N, \qquad \text{case } N \text{ of \{...\}}, \qquad \mathit{absurd} N 
+    \] with $N$ neutral and the other parts in normal form. \\
+    A form is in normal form exactly when it is an introduction form, $\lambda x. M$, $(M, N)$, $\mathit{Left} M$ or
+    $\mathit{Right} M$, whose parts are in normal form, or is neutral. Why ``exactly when'': the types do work.
+    \begin{itemize}
+        \item Take a normal-form application $M\,N$. Its $M$ is in normal form and has an arrow type, and it is not a
+        $\lambda$, or $M \, N$ would be a redex.
+        \item By induction, $M$ is an introduction form or neutral. The only introduction form with an arrow type is a
+        $\lambda$. So $M$ is neutral, and then so is $M \, N$. 
+        \item The same argument handles a projection, whose argument cannot be a pair, and a case, whose argument
+        cannot be a tag.
+        \item The argument of an $\mathit{absurd}$ has type $\bot$, which has no introduction form at all, so it too must
+        be neutral.
+    \end{itemize}
+\end{definition}
 
+\begin{lemma}[shape of closed normal forms]
+    A closed type term in normal form is an introduction form. Consequently there is no closed term in normal form whose
+    type is a letter $P$, and none whose type is $\bot$.
+\end{lemma}
 
+\begin{theorem}[consistency]
+    There is no closed term type $\bot : \not \vdash \bot$. More generally, for every letter $p$, $\not \vdash p$
+\end{theorem}
+
+\begin{corollary}[disjunction property]
+    If $\vdash A \lor B$, then $\vdash A$ or $\vdash B$
+\end{corollary}
+
+\newpage
+\subsection{Fitch proofs}
+
+\begin{definition}[Fitch proof, the boxes]
+    A Fitch proof $\varphi$ from $\Gamma$ is a box with head $\Gamma$ whose last entry is the line $\varphi$, in which
+    every line $\varphi_k$ is justified in one of these ways, ``earlier'' meaning ``in scope at line $k$'':
+    \begin{enumerate}
+        \item (\textit{hyp}) $\varphi_k$ is in $\Gamma$, or is the supposition of a subbox that contains line $k$;
+        \item ($\to E$) there are earlier lines $\varphi_i$ and $\varphi_j$ such that $\varphi_i$ is $\varphi_j \to 
+        \varphi_k$;
+        \item ($\to I$) $\varphi_k$ is $\psi \to \chi$, and there is an earlier subbox with supposition $\psi$ whose 
+        last line is $\chi$;
+        \item ($\land I$) $\varphi_k$ is $\psi \land \chi$, and $\psi$ and $\chi$ are earlier lines;
+        \item ($\land E_1, \land E_2$) some earlier line is $\varphi_k \land \chi$, or $\psi \land \varphi_k$;
+        \item ($\lor I_1, \lor I_2$) $\varphi_k$ is $\psi \lor \chi$, and $\psi$, or $\chi$, is an earlier line; 
+        \item ($\lor E$) some earlier line is $\psi \lor \chi$, and there are two earlier subboxes, with suppositions
+        $\psi$ and $\chi$, each with last line $\varphi_k$;
+        \item ($\bot E$) $\bot$ is an earlier line.
+    \end{enumerate}
+    No other kind of line is allowed.
+\end{definition}
+
+\begin{theorem}[trees and boxes]
+    For every set of formulas $\Gamma$ and every formula $\varphi$, the following are equivalent:
+    \begin{enumerate}
+        \item $\Gamma \vdash_N \varphi$: some tree derivation has conclusion $\varphi$ and all its open hypotheses in
+        $\Gamma$;
+        \item $\varphi$ has a Fitch proof of $\Gamma$.
+    \end{enumerate}
+    The translations both ways go step by step: each bar of a tree becomes a line justified by the same rule; each line 
+    of a Fitch proof not justified by (hyp) becomes a bar of the same rule.
+\end{theorem}
 
 \end{document}
