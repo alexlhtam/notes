@@ -1,0 +1,54 @@
+\documentclass[a4paper, 11pt]{article}
+
+\usepackage[margin=3cm]{geometry} 
+\usepackage{amsthm, amsmath, amssymb}
+\usepackage{array}
+\usepackage{bussproofs}
+\usepackage{booktabs}
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
+\newtheorem{example}[definition]{Example}
+\newtheorem{theorem}[definition]{Theorem}
+\newtheorem{lemma}[definition]{Lemma}
+\newtheorem{prop}[definition]{Proposition}
+\newtheorem{corollary}[definition]{Corollary}
+
+% change spacing
+\let\olditemize\itemize
+\renewcommand{\itemize}{\olditemize\setlength{\itemsep}{0pt}\setlength{\parsep}{0pt}}
+\let\oldenumerate\enumerate
+\renewcommand{\enumerate}{\oldenumerate\setlength{\itemsep}{0pt}\setlength{\parsep}{0pt}}
+
+% hilbert proofs
+\newcounter{dline}
+\newenvironment{deduction}[1][\textit{no hypotheses}]
+    {\setcounter{dline}{0}%
+     \[\begin{array}{r|l@{\qquad}l}
+     & #1 \\ \cline{2-2}}
+    {\end{array}\]}
+\newcommand{\dl}[2]{\stepcounter{dline}\thedline & #1 & \text{#2} \\}
+
+% tables
+\newenvironment{comparison}[4][p{0.22\textwidth} p{0.36\textwidth} p{0.36\textwidth}]
+    {\setcounter{factrow}{0}%
+     \begin{center}
+     \begin{tabular}{#1}
+     \textsc{#2} & \textsc{#3} & \textsc{#4} \\[4pt]}
+    {\end{tabular}
+     \end{center}}
+
+
+\begin{document}
+\section{Memory Units and Introduction to MIPS}
+
+\subsection{Memory Units}
+A binary digit (a bit) is a single $0/1$ digit. A byte (nowadays) is a unit of $8$ bytes, and a kilobyte (KB) is
+$2^{10}=1024$ bytes, a megabyte $2^{20}=1024$ KB, then GB, TB, PB, EB, and so on.
+
+\subsection{Working unit size -- Words}
+A word is a natural unit of data used by a given processor. In this course MIPS32 is used, but MIPS16 and MIPS64 do exist.
+This typically indicates the sizes of registers, memory addresses, instruction sizes, and floating point variable sizes.
+
+
+\end{document}
