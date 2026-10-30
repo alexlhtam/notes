@@ -1,0 +1,467 @@
+\documentclass[a4paper, 11pt]{article}
+
+\usepackage[margin=3cm]{geometry} 
+\usepackage{amsthm, amsmath, amssymb}
+\usepackage{array}
+\usepackage{bussproofs}
+\usepackage{booktabs}
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
+\newtheorem{example}[definition]{Example}
+\newtheorem{theorem}[definition]{Theorem}
+\newtheorem{lemma}[definition]{Lemma}
+\newtheorem{prop}[definition]{Proposition}
+\newtheorem{corollary}[definition]{Corollary}
+
+% change spacing
+\let\olditemize\itemize
+\renewcommand{\itemize}{\olditemize\setlength{\itemsep}{0pt}\setlength{\parsep}{0pt}}
+\let\oldenumerate\enumerate
+\renewcommand{\enumerate}{\oldenumerate\setlength{\itemsep}{0pt}\setlength{\parsep}{0pt}}
+
+% hilbert proofs
+\newcounter{dline}
+\newenvironment{deduction}[1][\textit{no hypotheses}]
+    {\setcounter{dline}{0}%
+     \[\begin{array}{r|l@{\qquad}l}
+     & #1 \\ \cline{2-2}}
+    {\end{array}\]}
+\newcommand{\dl}[2]{\stepcounter{dline}\thedline & #1 & \text{#2} \\}
+
+% tables
+\newcounter{factrow}
+\newenvironment{comparison}[4][p{0.22\textwidth} p{0.36\textwidth} p{0.36\textwidth}]
+    {\setcounter{factrow}{0}%
+     \begin{center}
+     \begin{tabular}{#1}
+     \textsc{#2} & \textsc{#3} & \textsc{#4} \\[4pt]}
+    {\end{tabular}
+     \end{center}}
+
+% ======================================================================
+% WORKSHEET MACROS: you should only need the commands in this cheat sheet.
+%
+%   SCRIPTS (spaces are application, so just type them as on the sheet)
+%     \s{S K K a}             inline script, e.g. \s{(\lam{x} x z) y}
+%     \lam{x}                 lambda x.  (use inside scripts)
+%
+%   RUNS (each \st is one step; the step count is printed for you)
+%     \begin{run}
+%       \from{K a b c}        the starting script (already filled in)
+%       \st{a c}              one step
+%       \st{a c}[Int]         ... optionally with a type
+%     \end{run}
+%     Write \st{...} with no space before the brace.
+%
+%   CERTIFICATES (numbered automatically)
+%     \begin{deduction}[p \to q,\ p]       hypotheses (leave off for none)
+%       \dl{p \to q}{hypothesis}
+%       \dl{q \to p \to q}{\axI{q, p}}     (I) [q, p]
+%       \dl{q}{\MP{1}{2}}                  MP 1, 2
+%       \ddl{f x}{q}{\MP{1}{2}}            decorated line: script : statement
+%     \end{deduction}
+%
+%   TYPINGS
+%     \begin{typing}
+%       \ty{K K}{C \to A \to B \to A}{(app) 1, 2}   prints  n. |- K K : ...
+%     \end{typing}
+%
+%   TREES (write the tree bottom-up in reading order: premises first, then
+%   the bar that joins them; bussproofs does the layout)
+%     \begin{prooftree}
+%       \hyp{A \to B}  \dis{A}{1}     open leaf, then leaf [A]^1
+%       \impE{B}                      bar with 2 premises
+%       \impI[1]{A \to B}             bar discharging 1  (\impI{..} = none)
+%     \end{prooftree}
+%     Bars: \impE \impI[n] \andI \andEi \andEii \orIi \orIii \orE{i}{j}
+%           \botE \allE \allI \exI \exE{n} \eqI \eqE
+%     Anything else: \unary{label}{A} \binary{label}{A} \trinary{label}{A}
+%     \goal{A}   placeholder: shows A under a \hyp{\vdots}; delete when done
+%
+%   GAPS   \fillin{}  prints a blank line; type inside the braces to fill it
+% ======================================================================
+\usepackage{xcolor}
+\definecolor{qgrey}{gray}{0.4}
+\makeatletter
+
+% questions: the sheet's text in grey, your answer below it
+\newenvironment{q}[1]
+    {\subsection*{#1}\begingroup\small\color{qgrey}}
+    {\par\endgroup\medskip}
+\newenvironment{parts}
+    {\begin{enumerate}\renewcommand{\labelenumi}{(\roman{enumi})}}
+    {\end{enumerate}}
+\newcommand{\fillin}[1]{\if\relax\detokenize{#1}\relax\rule[-2pt]{3em}{0.4pt}\else#1\fi}
+
+% scripts: inside \s{..}, \from, \st, \ty and \ddl a typed space is application
+\begingroup\catcode`\ =\active%
+\gdef {\ifmmode\ \else\space\fi}%
+\endgroup
+\newcommand{\appspaces}{\catcode`\ =\active}
+\newcommand{\s}{\begingroup\appspaces\s@}
+\newcommand{\s@}[1]{\endgroup\ensuremath{#1}}
+\newcommand{\lam}[1]{\lambda #1.}
+
+% runs
+\newcounter{rstep}
+\newenvironment{run}
+    {\setcounter{rstep}{0}\[\begin{array}{r@{\quad}l@{\qquad}l}}
+    {& \ifnum\value{rstep}>0 \text{\small\itshape (\arabic{rstep}~step\ifnum\value{rstep}=1\else s\fi)}\fi \end{array}\]}
+\newcommand{\from}{\begingroup\appspaces\from@}
+\newcommand{\from@}[1]{\endgroup\@ifnextchar[{\run@line{}{#1}}{\run@line{}{#1}[]}}
+\newcommand{\st}{\begingroup\appspaces\st@}
+\newcommand{\st@}[1]{\endgroup\stepcounter{rstep}%
+    \@ifnextchar[{\run@line{\rightsquigarrow}{#1}}{\run@line{\rightsquigarrow}{#1}[]}}
+\def\run@line#1#2[#3]{#1 & #2 & \if\relax\detokenize{#3}\relax\else : #3\fi \\}
+
+% certificates and typings
+\newcommand{\axI}[1]{(I)~$[#1]$}
+\newcommand{\axII}[1]{(II)~$[#1]$}
+\newcommand{\MP}[2]{MP~#1,~#2}
+\newcommand{\ddl}{\begingroup\appspaces\ddl@}
+\newcommand{\ddl@}[1]{\endgroup\ddl@@{#1}}
+\newcommand{\ddl@@}[3]{\dl{#1 : #2}{#3}}
+\newenvironment{typing}
+    {\setcounter{dline}{0}\[\begin{array}{r@{.\ \ }l@{\qquad}l}}
+    {\end{array}\]}
+\newcommand{\ty}{\begingroup\appspaces\ty@}
+\newcommand{\ty@}[1]{\endgroup\ty@@{#1}}
+\newcommand{\ty@@}[3]{\stepcounter{dline}\thedline & \vdash #1 : #2 & \text{#3} \\}
+
+% trees
+\newcommand{\hyp}[1]{\AxiomC{$#1$}}
+\newcommand{\dis}[2]{\AxiomC{$[#1]^{#2}$}}
+\newcommand{\goal}[1]{\noLine\UnaryInfC{$#1$}}
+\newcommand{\rl}[2]{\RightLabel{\scriptsize #1\if\relax\detokenize{#2}\relax\else, #2\fi}}
+\newcommand{\unary}[2]{\RightLabel{\scriptsize #1}\UnaryInfC{$#2$}}
+\newcommand{\binary}[2]{\RightLabel{\scriptsize #1}\BinaryInfC{$#2$}}
+\newcommand{\trinary}[2]{\RightLabel{\scriptsize #1}\TrinaryInfC{$#2$}}
+\newcommand{\impE}[1]{\binary{$\to$E}{#1}}
+\newcommand{\impI}[2][]{\rl{$\to$I}{#1}\UnaryInfC{$#2$}}
+\newcommand{\andI}[1]{\binary{$\land$I}{#1}}
+\newcommand{\andEi}[1]{\unary{$\land$E$_1$}{#1}}
+\newcommand{\andEii}[1]{\unary{$\land$E$_2$}{#1}}
+\newcommand{\orIi}[1]{\unary{$\lor$I$_1$}{#1}}
+\newcommand{\orIii}[1]{\unary{$\lor$I$_2$}{#1}}
+\newcommand{\orE}[3]{\trinary{$\lor$E, #1, #2}{#3}}
+\newcommand{\botE}[1]{\unary{$\bot$E}{#1}}
+\newcommand{\allE}[1]{\unary{$\forall$E}{#1}}
+\newcommand{\allI}[1]{\unary{$\forall$I}{#1}}
+\newcommand{\exI}[1]{\unary{$\exists$I}{#1}}
+\newcommand{\exE}[2]{\binary{$\exists$E, #1}{#2}}
+\newcommand{\eqI}[1]{\AxiomC{}\unary{$=$I}{#1}}
+\newcommand{\eqE}[1]{\binary{$=$E}{#1}}
+
+% names
+\newcommand{\nm}[1]{\mathit{#1}}
+\newcommand{\str}[1]{\text{\texttt{"#1"}}}
+\newcommand{\Int}{\mathsf{Int}}
+\newcommand{\String}{\mathsf{String}}
+\newcommand{\fst}{\mathsf{fst}}
+\newcommand{\snd}{\mathsf{snd}}
+\newcommand{\Left}{\mathsf{Left}}
+\newcommand{\Right}{\mathsf{Right}}
+\newcommand{\absurd}{\mathsf{absurd}}
+\newcommand{\caseof}[5]{\mathsf{case}\ #1\ \mathsf{of}\ \Left\ #2 \Rightarrow #3 \mid \Right\ #4 \Rightarrow #5}
+\makeatother
+
+\begin{document}
+
+\section*{Problem Sheet 1 --- Part B}
+
+% ---------------------------------------------------------------------
+\begin{q}{B1. Brackets}
+Insert the brackets that left-grouping hides: (i) \s{K a b c}; (ii) \s{S x y z w}; (iii) \s{f (g x) y z}.
+Then say which of these strings are scripts: \s{K (S K)};\enspace \s{(K S K}; \s{S K) K};\enspace \s{x (y z)};\enspace \s{K K K K}.
+\end{q}
+\begin{parts}
+    \item \s{}
+    \item \s{}
+    \item \s{}
+\end{parts}
+Scripts: 
+
+% ---------------------------------------------------------------------
+\begin{q}{B2. Definitions}
+A definition is $f\ x_1 \cdots x_n \mathrel{:=} M$ with distinct parameters, where $M$ uses only $K$, $S$, the parameters
+and names defined earlier. Which of these are definitions? Give a reason for each that is not.
+\end{q}
+\begin{parts}
+    \item \s{f x y \mathrel{:=} y x}: 
+    \item \s{g x y \mathrel{:=} x z}: 
+    \item \s{h x x \mathrel{:=} x}: 
+    \item \s{k x \mathrel{:=} k x}: 
+    \item \s{m x \mathrel{:=} K (S x)}: 
+    \item \s{n \mathrel{:=} S K K}: 
+    \item \s{r x y \mathrel{:=} K x}: 
+\end{parts}
+
+% ---------------------------------------------------------------------
+\begin{q}{B3. Runs}
+Run each script to a normal form, one step per line. Count the steps.
+\end{q}
+\begin{parts}
+    \item \begin{run}
+        \from{K a b c}
+    \end{run}
+    \item \begin{run}
+        \from{K (K a) b c}
+    \end{run}
+    \item \begin{run}
+        \from{S K K a}
+    \end{run}
+    \item \begin{run}
+        \from{S (K a) (K b) c}
+    \end{run}
+    \item \begin{run}
+        \from{S K S K}
+    \end{run}
+    \item \begin{run}
+        \from{S K K (S K K)}
+    \end{run}
+\end{parts}
+
+% ---------------------------------------------------------------------
+\begin{q}{B4. Two more programs}
+Run (i) \s{S (K S) K f g x} and (ii) \s{S S (S K) f x} to normal form. What does each do? Count the steps.
+\end{q}
+\begin{parts}
+    \item \begin{run}
+        \from{S (K S) K f g x}
+    \end{run}
+    It does: 
+    \item \begin{run}
+        \from{S S (S K) f x}
+    \end{run}
+    It does: 
+\end{parts}
+
+% ---------------------------------------------------------------------
+\begin{q}{B5. Numerals}
+With \s{\nm{succ} n f x \mathrel{:=} f (n f x)},\enspace \s{\nm{add} m n f x \mathrel{:=} m f (n f x)},\enspace
+\s{\nm{mult} m n f \mathrel{:=} m (n f)}:
+(i) Run \s{\nm{succ} 2 f x}. Which numeral does it equal?
+(ii) Run \s{\nm{add} 3 2 f x} and \s{\nm{mult} 2 3 f x}, and count the copies of $f$.
+(iii) Let \s{\nm{iszero} n \mathrel{:=} n (K \nm{false}) \nm{true}}. Run \s{\nm{iszero} 0} and \s{\nm{iszero} 2}.
+(iv) How many copies of $f$ are there in the normal forms of \s{3 2 f x} and of \s{2 3 f x}? Work it out before running
+anything. Which is bigger, and why does the order matter?
+\end{q}
+\begin{parts}
+    \item \begin{run}
+        \from{\nm{succ} 2 f x}
+    \end{run}
+    It equals: 
+    \item \begin{run}
+        \from{\nm{add} 3 2 f x}
+    \end{run}
+    Copies of $f$: 
+    \begin{run}
+        \from{\nm{mult} 2 3 f x}
+    \end{run}
+    Copies of $f$: 
+    \item \begin{run}
+        \from{\nm{iszero} 0}
+    \end{run}
+    \begin{run}
+        \from{\nm{iszero} 2}
+    \end{run}
+    \item \s{3 2 f x}: \qquad \s{2 3 f x}: 
+
+    Bigger, and why: 
+\end{parts}
+
+% ---------------------------------------------------------------------
+\begin{q}{B6. Booleans}
+Define \s{\nm{xor} p q \mathrel{:=} p (\nm{not} q) q} and \s{\nm{nand} p q \mathrel{:=} \nm{not} (\nm{and} p q)}
+(with \s{\nm{not} b \mathrel{:=} b \nm{false} \nm{true}} and \s{\nm{and} p q \mathrel{:=} p q \nm{false}}). Fill in a table for each
+over the four pairs $(p, q)$ by running them, and say in a word what each computes. Then run \s{\nm{iszero} 0 a b} and
+\s{\nm{iszero} 2 a b}: what has $\mathit{iszero}$ turned a number into?
+\end{q}
+\begin{center}
+\begin{tabular}{cc|c|c}
+    $p$ & $q$ & \s{\nm{xor} p q} & \s{\nm{nand} p q} \\ \hline
+    \s{\nm{true}}  & \s{\nm{true}}  &  &  \\
+    \s{\nm{true}}  & \s{\nm{false}} &  &  \\
+    \s{\nm{false}} & \s{\nm{true}}  &  &  \\
+    \s{\nm{false}} & \s{\nm{false}} &  &  \\
+\end{tabular}
+\end{center}
+$\mathit{xor}$ computes: \qquad $\mathit{nand}$ computes: 
+
+\begin{run}
+    \from{\nm{xor} \nm{true} \nm{true}}
+\end{run}
+\begin{run}
+    \from{\nm{xor} \nm{true} \nm{false}}
+\end{run}
+\begin{run}
+    \from{\nm{xor} \nm{false} \nm{true}}
+\end{run}
+\begin{run}
+    \from{\nm{xor} \nm{false} \nm{false}}
+\end{run}
+\begin{run}
+    \from{\nm{nand} \nm{true} \nm{true}}
+\end{run}
+\begin{run}
+    \from{\nm{nand} \nm{true} \nm{false}}
+\end{run}
+\begin{run}
+    \from{\nm{nand} \nm{false} \nm{true}}
+\end{run}
+\begin{run}
+    \from{\nm{nand} \nm{false} \nm{false}}
+\end{run}
+\begin{run}
+    \from{\nm{iszero} 0 a b}
+\end{run}
+\begin{run}
+    \from{\nm{iszero} 2 a b}
+\end{run}
+$\mathit{iszero}$ has turned a number into: 
+
+% ---------------------------------------------------------------------
+\begin{q}{B7. The order of steps}
+Run \s{S S K (K a b) c} twice: once always rewriting the leftmost-outermost redex, once always the leftmost-innermost
+redex. Compare the normal forms and the number of steps.
+\end{q}
+Leftmost-outermost:
+\begin{run}
+    \from{S S K (K a b) c}
+\end{run}
+Leftmost-innermost:
+\begin{run}
+    \from{S S K (K a b) c}
+\end{run}
+Comparison: 
+
+% ---------------------------------------------------------------------
+\begin{q}{B8. The trap in two constants}
+Here \s{\omega x \mathrel{:=} x x}. (i) Run \s{S I I x} (count \s{I M \rightsquigarrow M} as one step). What does it do to
+$x$? So which script is $\omega$, when written with $S$ and $I$ only? (ii) Write $X$ for \s{S I I}, so that $\Omega$ is
+\s{X X}. Show that \s{X X} comes back to itself after three steps. (Rewrite the argument \s{I X} before the front: if you
+do it the other way round, the script grows instead. Either way it never stops.)
+\end{q}
+\begin{parts}
+    \item \begin{run}
+        \from{S I I x}
+    \end{run}
+    It does to $x$: \qquad So $\omega = $ \s{}
+    \item \begin{run}
+        \from{X X}
+    \end{run}
+\end{parts}
+
+% ---------------------------------------------------------------------
+\begin{q}{B9. Does it stop?}
+For each script, say whether every run stops, some runs stop and some do not, or no run stops. Here
+\s{\Omega = \omega \omega} with \s{\omega x \mathrel{:=} x x}.
+\end{q}
+\begin{parts}
+    \item \s{\Omega}: 
+    \item \s{K a \Omega}: 
+    \item \s{K \Omega a}: 
+    \item \s{S I I K}: 
+    \item \s{S K \Omega a}: 
+\end{parts}
+
+% ---------------------------------------------------------------------
+\begin{q}{B10. Types}
+(i) Insert the brackets: $A \to B \to C \to D$;\enspace $(A \to B) \to C \to D$;\enspace $(A \to B \to C) \to D$.
+(ii) The schema (K) is $A \to B \to A$. Which of these are instances of it, for some choice of types for $A$ and $B$?
+(iii) The schema (S) is $(A \to B \to C) \to (A \to B) \to A \to C$. Which of these are instances of it?
+\end{q}
+\begin{parts}
+    \item \begin{itemize}
+        \item[] $A \to B \to C \to D$ \quad = \quad $ $
+        \item[] $(A \to B) \to C \to D$ \quad = \quad $ $
+        \item[] $(A \to B \to C) \to D$ \quad = \quad $ $
+    \end{itemize}
+    \item \begin{itemize}
+        \item[(a)] $\Int \to \String \to \Int$: 
+        \item[(b)] $\Int \to \Int \to \Int$: 
+        \item[(c)] $\Int \to \String \to \String$: 
+        \item[(d)] $(p \to q) \to r \to (p \to q)$: 
+        \item[(e)] $p \to p$: 
+        \item[(f)] $p \to (q \to r) \to p$: 
+    \end{itemize}
+    \item \begin{itemize}
+        \item[(a)] $(p \to q \to r) \to (p \to q) \to p \to r$: 
+        \item[(b)] $(p \to p \to p) \to (p \to p) \to p \to p$: 
+        \item[(c)] $(p \to q \to r) \to (p \to r) \to p \to r$: 
+        \item[(d)] $(\Int \to \Int \to \Int) \to (\Int \to \Int) \to \Int \to \Int$: 
+    \end{itemize}
+\end{parts}
+
+% ---------------------------------------------------------------------
+\begin{q}{B11. Typings}
+Write a typing, in the form of A4, with the empty context, for (i) \s{K K} and (ii) \s{S K S}. Work backwards from the
+goal: what type does each constant have to take, for the (app) lines to match? State the type each script ends up with.
+Reasons: (K), (S), (var), (given), (app)~$i, j$.
+\end{q}
+\begin{parts}
+    \item \begin{typing}
+        \ty{K}{ }{(K)}
+    \end{typing}
+    Type of \s{K K}: 
+    \item \begin{typing}
+        \ty{S}{ }{(S)}
+    \end{typing}
+    Type of \s{S K S}: 
+\end{parts}
+
+% ---------------------------------------------------------------------
+\begin{q}{B12. Ready-made pieces}
+Integers have type $\Int$, \s{+ : \Int \to \Int \to \Int}, and strings have type $\String$. For each script, say whether
+it has a typing. If so, give its type; if not, say which application fails and what it expected and what it got.
+\end{q}
+\begin{parts}
+    \item \s{+ 1 2}: 
+    \item \s{+ 1 (+ 2)}: 
+    \item \s{K 1 \str{a}}: 
+    \item \s{+ (K 1 \str{a}) 3}: 
+    \item \s{+ \str{a} 1}: 
+    \item \s{K + 1}: 
+    \item \s{+ K 1}: 
+\end{parts}
+
+% ---------------------------------------------------------------------
+\begin{q}{B13. Subject reduction (beyond this week)}
+(i) In the context $f : B \to C,\ g : A \to B,\ x : A$, the script \s{S (K f) g x} has type $C$. Run it, and write the
+type of every script in the run. Give also the type of \s{K f x} and of \s{g x} in the second script. (ii) Suppose a
+careless checker gave $K$ the type $A \to B \to B$ instead of $A \to B \to A$. Find a script of the language of B12
+whose type changes when it takes one step. Which part of the proof of subject reduction would break?
+\end{q}
+\begin{parts}
+    \item \begin{run}
+        \from{S (K f) g x}[C]
+    \end{run}
+    \s{K f x} : \qquad \s{g x} : 
+    \item 
+\end{parts}
+
+% ---------------------------------------------------------------------
+\begin{q}{B14. Recursion (beyond this week)}
+Add a constant $\mathit{fix}$ with the step \s{\nm{fix} f \rightsquigarrow f (\nm{fix} f)} and the type
+$(A \to A) \to A$ for every $A$. Run each script for at most five steps and give its type.
+(i) \s{\nm{fix} (K 1)}. (ii) \s{\nm{fix} I}. (iii) \s{\nm{fix} (K K)}. What does $\mathit{fix}$ allow, and what does it
+force?
+\end{q}
+\begin{parts}
+    \item \begin{run}
+        \from{\nm{fix} (K 1)}
+    \end{run}
+    Type: 
+    \item \begin{run}
+        \from{\nm{fix} I}
+    \end{run}
+    Type: 
+    \item \begin{run}
+        \from{\nm{fix} (K K)}
+    \end{run}
+    Type: 
+\end{parts}
+Allows / forces: 
+
+\end{document}

@@ -1,0 +1,555 @@
+\documentclass[a4paper, 11pt]{article}
+
+\usepackage[margin=3cm]{geometry} 
+\usepackage{amsthm, amsmath, amssymb}
+\usepackage{array}
+\usepackage{bussproofs}
+\usepackage{booktabs}
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
+\newtheorem{example}[definition]{Example}
+\newtheorem{theorem}[definition]{Theorem}
+\newtheorem{lemma}[definition]{Lemma}
+\newtheorem{prop}[definition]{Proposition}
+\newtheorem{corollary}[definition]{Corollary}
+
+% change spacing
+\let\olditemize\itemize
+\renewcommand{\itemize}{\olditemize\setlength{\itemsep}{0pt}\setlength{\parsep}{0pt}}
+\let\oldenumerate\enumerate
+\renewcommand{\enumerate}{\oldenumerate\setlength{\itemsep}{0pt}\setlength{\parsep}{0pt}}
+
+% hilbert proofs
+\newcounter{dline}
+\newenvironment{deduction}[1][\textit{no hypotheses}]
+    {\setcounter{dline}{0}%
+     \[\begin{array}{r|l@{\qquad}l}
+     & #1 \\ \cline{2-2}}
+    {\end{array}\]}
+\newcommand{\dl}[2]{\stepcounter{dline}\thedline & #1 & \text{#2} \\}
+
+% tables
+\newcounter{factrow}
+\newenvironment{comparison}[4][p{0.22\textwidth} p{0.36\textwidth} p{0.36\textwidth}]
+    {\setcounter{factrow}{0}%
+     \begin{center}
+     \begin{tabular}{#1}
+     \textsc{#2} & \textsc{#3} & \textsc{#4} \\[4pt]}
+    {\end{tabular}
+     \end{center}}
+
+% ======================================================================
+% WORKSHEET MACROS: you should only need the commands in this cheat sheet.
+%
+%   SCRIPTS (spaces are application, so just type them as on the sheet)
+%     \s{S K K a}             inline script, e.g. \s{(\lam{x} x z) y}
+%     \lam{x}                 lambda x.  (use inside scripts)
+%
+%   RUNS (each \st is one step; the step count is printed for you)
+%     \begin{run}
+%       \from{K a b c}        the starting script (already filled in)
+%       \st{a c}              one step
+%       \st{a c}[Int]         ... optionally with a type
+%     \end{run}
+%     Write \st{...} with no space before the brace.
+%
+%   CERTIFICATES (numbered automatically)
+%     \begin{deduction}[p \to q,\ p]       hypotheses (leave off for none)
+%       \dl{p \to q}{hypothesis}
+%       \dl{q \to p \to q}{\axI{q, p}}     (I) [q, p]
+%       \dl{q}{\MP{1}{2}}                  MP 1, 2
+%       \ddl{f x}{q}{\MP{1}{2}}            decorated line: script : statement
+%     \end{deduction}
+%
+%   TYPINGS
+%     \begin{typing}
+%       \ty{K K}{C \to A \to B \to A}{(app) 1, 2}   prints  n. |- K K : ...
+%     \end{typing}
+%
+%   TREES (write the tree bottom-up in reading order: premises first, then
+%   the bar that joins them; bussproofs does the layout)
+%     \begin{prooftree}
+%       \hyp{A \to B}  \dis{A}{1}     open leaf, then leaf [A]^1
+%       \impE{B}                      bar with 2 premises
+%       \impI[1]{A \to B}             bar discharging 1  (\impI{..} = none)
+%     \end{prooftree}
+%     Bars: \impE \impI[n] \andI \andEi \andEii \orIi \orIii \orE{i}{j}
+%           \botE \allE \allI \exI \exE{n} \eqI \eqE
+%     Anything else: \unary{label}{A} \binary{label}{A} \trinary{label}{A}
+%     \goal{A}   placeholder: shows A under a \hyp{\vdots}; delete when done
+%
+%   GAPS   \fillin{}  prints a blank line; type inside the braces to fill it
+% ======================================================================
+\usepackage{xcolor}
+\definecolor{qgrey}{gray}{0.4}
+\makeatletter
+
+% questions: the sheet's text in grey, your answer below it
+\newenvironment{q}[1]
+    {\subsection*{#1}\begingroup\small\color{qgrey}}
+    {\par\endgroup\medskip}
+\newenvironment{parts}
+    {\begin{enumerate}\renewcommand{\labelenumi}{(\roman{enumi})}}
+    {\end{enumerate}}
+\newcommand{\fillin}[1]{\if\relax\detokenize{#1}\relax\rule[-2pt]{3em}{0.4pt}\else#1\fi}
+
+% scripts: inside \s{..}, \from, \st, \ty and \ddl a typed space is application
+\begingroup\catcode`\ =\active%
+\gdef {\ifmmode\ \else\space\fi}%
+\endgroup
+\newcommand{\appspaces}{\catcode`\ =\active}
+\newcommand{\s}{\begingroup\appspaces\s@}
+\newcommand{\s@}[1]{\endgroup\ensuremath{#1}}
+\newcommand{\lam}[1]{\lambda #1.}
+
+% runs
+\newcounter{rstep}
+\newenvironment{run}
+    {\setcounter{rstep}{0}\[\begin{array}{r@{\quad}l@{\qquad}l}}
+    {& \ifnum\value{rstep}>0 \text{\small\itshape (\arabic{rstep}~step\ifnum\value{rstep}=1\else s\fi)}\fi \end{array}\]}
+\newcommand{\from}{\begingroup\appspaces\from@}
+\newcommand{\from@}[1]{\endgroup\@ifnextchar[{\run@line{}{#1}}{\run@line{}{#1}[]}}
+\newcommand{\st}{\begingroup\appspaces\st@}
+\newcommand{\st@}[1]{\endgroup\stepcounter{rstep}%
+    \@ifnextchar[{\run@line{\rightsquigarrow}{#1}}{\run@line{\rightsquigarrow}{#1}[]}}
+\def\run@line#1#2[#3]{#1 & #2 & \if\relax\detokenize{#3}\relax\else : #3\fi \\}
+
+% certificates and typings
+\newcommand{\axI}[1]{(I)~$[#1]$}
+\newcommand{\axII}[1]{(II)~$[#1]$}
+\newcommand{\MP}[2]{MP~#1,~#2}
+\newcommand{\ddl}{\begingroup\appspaces\ddl@}
+\newcommand{\ddl@}[1]{\endgroup\ddl@@{#1}}
+\newcommand{\ddl@@}[3]{\dl{#1 : #2}{#3}}
+\newenvironment{typing}
+    {\setcounter{dline}{0}\[\begin{array}{r@{.\ \ }l@{\qquad}l}}
+    {\end{array}\]}
+\newcommand{\ty}{\begingroup\appspaces\ty@}
+\newcommand{\ty@}[1]{\endgroup\ty@@{#1}}
+\newcommand{\ty@@}[3]{\stepcounter{dline}\thedline & \vdash #1 : #2 & \text{#3} \\}
+
+% trees
+\newcommand{\hyp}[1]{\AxiomC{$#1$}}
+\newcommand{\dis}[2]{\AxiomC{$[#1]^{#2}$}}
+\newcommand{\goal}[1]{\noLine\UnaryInfC{$#1$}}
+\newcommand{\rl}[2]{\RightLabel{\scriptsize #1\if\relax\detokenize{#2}\relax\else, #2\fi}}
+\newcommand{\unary}[2]{\RightLabel{\scriptsize #1}\UnaryInfC{$#2$}}
+\newcommand{\binary}[2]{\RightLabel{\scriptsize #1}\BinaryInfC{$#2$}}
+\newcommand{\trinary}[2]{\RightLabel{\scriptsize #1}\TrinaryInfC{$#2$}}
+\newcommand{\impE}[1]{\binary{$\to$E}{#1}}
+\newcommand{\impI}[2][]{\rl{$\to$I}{#1}\UnaryInfC{$#2$}}
+\newcommand{\andI}[1]{\binary{$\land$I}{#1}}
+\newcommand{\andEi}[1]{\unary{$\land$E$_1$}{#1}}
+\newcommand{\andEii}[1]{\unary{$\land$E$_2$}{#1}}
+\newcommand{\orIi}[1]{\unary{$\lor$I$_1$}{#1}}
+\newcommand{\orIii}[1]{\unary{$\lor$I$_2$}{#1}}
+\newcommand{\orE}[3]{\trinary{$\lor$E, #1, #2}{#3}}
+\newcommand{\botE}[1]{\unary{$\bot$E}{#1}}
+\newcommand{\allE}[1]{\unary{$\forall$E}{#1}}
+\newcommand{\allI}[1]{\unary{$\forall$I}{#1}}
+\newcommand{\exI}[1]{\unary{$\exists$I}{#1}}
+\newcommand{\exE}[2]{\binary{$\exists$E, #1}{#2}}
+\newcommand{\eqI}[1]{\AxiomC{}\unary{$=$I}{#1}}
+\newcommand{\eqE}[1]{\binary{$=$E}{#1}}
+
+% names
+\newcommand{\nm}[1]{\mathit{#1}}
+\newcommand{\str}[1]{\text{\texttt{"#1"}}}
+\newcommand{\Int}{\mathsf{Int}}
+\newcommand{\String}{\mathsf{String}}
+\newcommand{\fst}{\mathsf{fst}}
+\newcommand{\snd}{\mathsf{snd}}
+\newcommand{\Left}{\mathsf{Left}}
+\newcommand{\Right}{\mathsf{Right}}
+\newcommand{\absurd}{\mathsf{absurd}}
+\newcommand{\caseof}[5]{\mathsf{case}\ #1\ \mathsf{of}\ \Left\ #2 \Rightarrow #3 \mid \Right\ #4 \Rightarrow #5}
+\makeatother
+
+\begin{document}
+
+\section*{Problem Sheet 3 --- Part B}
+
+% ---------------------------------------------------------------------
+\begin{q}{B1. Reading scripts}
+In \s{\lam{x} M}, the $\lambda$ binds every $x$ in $M$ that no inner $\lambda x$ has bound already. An $x$ that no
+$\lambda$ binds is free. A script with no free names is closed. (i)--(vi): list the free names of each script, and say
+which are closed. (vii)--(ix): insert the brackets hidden by the rules that application groups to the left and a $\lambda$
+reaches as far to the right as it can, and say which of them can take a $\beta$ step.
+\end{q}
+\begin{parts}
+    \item \s{\lam{x} x z}: 
+    \item \s{(\lam{x} x z) x}: 
+    \item \s{\lam{x} \lam{u} x (u z)}: 
+    \item \s{\lam{f} f (\lam{x} f x) x}: 
+    \item \s{\lam{x} \lam{u} u x}: 
+    \item \s{(\lam{x} x) (\lam{u} u)}: 
+    \item \s{\lam{x} f x z} \quad = \quad \s{ }
+    \item \s{(\lam{x} f x) z} \quad = \quad \s{ }
+    \item \s{\lam{u} \lam{x} x u z} \quad = \quad \s{ }
+\end{parts}
+Closed: \qquad Can take a $\beta$ step: 
+
+% ---------------------------------------------------------------------
+\begin{q}{B2. Runs}
+Run each script to the end, one $\beta$ step per line, and count the steps. (v) Write $2$ for \s{\lam{f} \lam{x} f (f x)},
+the numeral 2 of Sheet 1. Run \s{2 2 h c}, taking the step furthest to the left each time.
+\end{q}
+\begin{parts}
+    \item \begin{run}
+        \from{(\lam{x} x) a}
+    \end{run}
+    \item \begin{run}
+        \from{(\lam{x} \lam{u} u x) a f}
+    \end{run}
+    \item \begin{run}
+        \from{(\lam{f} \lam{x} f (f x)) h c}
+    \end{run}
+    \item \begin{run}
+        \from{(\lam{x} x x) (\lam{u} u)}
+    \end{run}
+    \item \begin{run}
+        \from{2 2 h c}
+    \end{run}
+\end{parts}
+
+% ---------------------------------------------------------------------
+\begin{q}{B3. Two warnings}
+(i) Run \s{\Omega = (\lam{x} x x) (\lam{x} x x)} for three steps. (ii) Run \s{(\lam{x} \lam{u} x) u} for one step, first
+blindly, putting $u$ in place of $x$ wherever it stands, and then after renaming the bound $u$ to $v$. Apply each answer
+to $c$. Which answer is the one meant?
+\end{q}
+\begin{parts}
+    \item \begin{run}
+        \from{(\lam{x} x x) (\lam{x} x x)}
+    \end{run}
+    \item Blindly:
+    \begin{run}
+        \from{(\lam{x} \lam{u} x) u}
+    \end{run}
+    After renaming:
+    \begin{run}
+        \from{(\lam{x} \lam{v} x) u}
+    \end{run}
+    Applied to $c$: \qquad The one meant: 
+\end{parts}
+
+% ---------------------------------------------------------------------
+\begin{q}{B4. Types}
+Find a type for each script, using $A, B, C$ for any statements, or explain why it has none. Read each type you find as a
+statement: what does it say?
+\end{q}
+\begin{parts}
+    \item \s{\lam{x} x} : $ $\\ Says: 
+    \item \s{\lam{f} \lam{x} f (f x)} : $ $\\ Says: 
+    \item \s{\lam{a} \lam{b} b} : $ $\\ Says: 
+    \item \s{\lam{x} x x} : $ $\\ Says: 
+    \item \s{\lam{q} \fst q (\snd q)} : $ $\\ Says: 
+    \item \s{\lam{x} \Left x} : $ $\\ Says: 
+    \item \s{\lam{x} \fst x x} : $ $\\ Says: 
+\end{parts}
+
+% ---------------------------------------------------------------------
+\begin{q}{B5. Reading trees}
+For each tree, say which hypotheses are open, write what it shows as ``$\Gamma \vdash A$'', and write its program. Use the
+names $f, g$ and $e$ for the open leaves given beside each tree.
+\end{q}
+\begin{parts}
+    \item $f : A \to B,\ g : B \to C$:
+    {\color{qgrey}\begin{prooftree}
+        \hyp{B \to C} \hyp{A \to B} \dis{A}{1}
+        \impE{B}
+        \impE{C}
+        \impI[1]{A \to C}
+    \end{prooftree}}
+    Open: \qquad Shows: $ \vdash $ \qquad Program: \s{ }
+    \item no open leaves:
+    {\color{qgrey}\begin{prooftree}
+        \dis{A \to B}{3} \dis{A}{1}
+        \impE{B}
+        \dis{A \to C}{2} \dis{A}{1}
+        \impE{C}
+        \andI{B \land C}
+        \impI[1]{A \to B \land C}
+        \impI[2]{(A \to C) \to A \to B \land C}
+        \impI[3]{(A \to B) \to (A \to C) \to A \to B \land C}
+    \end{prooftree}}
+    Open: \qquad Shows: $ \vdash $ \qquad Program: \s{ }
+    \item $e : A \lor B,\ f : A \to C,\ g : B \to C$:
+    {\color{qgrey}\begin{prooftree}
+        \hyp{A \lor B}
+        \hyp{A \to C} \dis{A}{1}
+        \impE{C}
+        \hyp{B \to C} \dis{B}{2}
+        \impE{C}
+        \orE{1}{2}{C}
+    \end{prooftree}}
+    Open: \qquad Shows: $ \vdash $ \qquad Program: \s{ }
+    \item $e : (A \land B) \lor (A \land C)$:
+    {\color{qgrey}\begin{prooftree}
+        \hyp{(A \land B) \lor (A \land C)}
+        \dis{A \land B}{1}
+        \andEi{A}
+        \dis{A \land C}{2}
+        \andEi{A}
+        \orE{1}{2}{A}
+    \end{prooftree}}
+    Open: \qquad Shows: $ \vdash $ \qquad Program: \s{ }
+\end{parts}
+
+% ---------------------------------------------------------------------
+\begin{q}{B6. The two axioms as trees}
+Draw trees with no open hypotheses for Sheet 2's two axioms, (I) $A \to B \to A$ and
+(II) $(A \to B \to C) \to (A \to B) \to A \to C$, and decorate them to get their programs. Check that they are $K$ and $S$.
+Which bar of the first tree discharges nothing? Which leaf of the second tree appears twice, and what does that say about
+the program?
+\end{q}
+(I)
+\begin{prooftree}
+    \hyp{\vdots}
+    \goal{A \to B \to A}
+\end{prooftree}
+Program: \s{ } \qquad Discharges nothing: 
+
+(II)
+\begin{prooftree}
+    \hyp{\vdots}
+    \goal{(A \to B \to C) \to (A \to B) \to A \to C}
+\end{prooftree}
+Program: \s{ } \qquad Appears twice: 
+
+% ---------------------------------------------------------------------
+\begin{q}{B7. From a list to a tree}
+Here is a natural-deduction derivation as a list, where every line carries its context; $\Delta$ is $A \land (B \lor C)$.
+Draw it as a tree, and write its program. In the context of how many lines of the list does $\Delta$ appear? How many
+leaves $A \land (B \lor C)$ does the tree have?
+\begin{deduction}[\Delta = A \land (B \lor C)]
+    \dl{\Delta \vdash A \land (B \lor C)}{(hyp)}
+    \dl{\Delta \vdash B \lor C}{($\land$E$_2$) 1}
+    \dl{\Delta, B \vdash A \land (B \lor C)}{(hyp)}
+    \dl{\Delta, B \vdash A}{($\land$E$_1$) 3}
+    \dl{\Delta, B \vdash B}{(hyp)}
+    \dl{\Delta, B \vdash A \land B}{($\land$I) 4, 5}
+    \dl{\Delta, B \vdash (A \land B) \lor (A \land C)}{($\lor$I$_1$) 6}
+    \dl{\Delta, C \vdash A \land (B \lor C)}{(hyp)}
+    \dl{\Delta, C \vdash A}{($\land$E$_1$) 8}
+    \dl{\Delta, C \vdash C}{(hyp)}
+    \dl{\Delta, C \vdash A \land C}{($\land$I) 9, 10}
+    \dl{\Delta, C \vdash (A \land B) \lor (A \land C)}{($\lor$I$_2$) 11}
+    \dl{\Delta \vdash (A \land B) \lor (A \land C)}{($\lor$E) 2, 7, 12}
+    \dl{\vdash A \land (B \lor C) \to (A \land B) \lor (A \land C)}{($\to$I) 13}
+\end{deduction}
+\end{q}
+\begin{prooftree}
+    \hyp{\vdots}
+    \goal{A \land (B \lor C) \to (A \land B) \lor (A \land C)}
+\end{prooftree}
+Program: \s{ }
+
+Lines with $\Delta$ in the context: \qquad Leaves $A \land (B \lor C)$: 
+
+% ---------------------------------------------------------------------
+\begin{q}{B8. Draw and decorate}
+Draw a tree with no open hypotheses for each statement. Then decorate it to get its program. What does each program do?
+Hint: work from the bottom up. To prove an implication, suppose its left-hand side: write it as a leaf with a number, and
+aim for the right-hand side. To prove an ``and'', prove both halves.
+\end{q}
+\begin{parts}
+    \item \begin{prooftree}
+        \hyp{\vdots}
+        \goal{(A \to B \to C) \to B \to A \to C}
+    \end{prooftree}
+    Program: \s{ } \qquad It does: 
+    \item \begin{prooftree}
+        \hyp{\vdots}
+        \goal{(A \land B \to C) \to A \to B \to C}
+    \end{prooftree}
+    Program: \s{ } \qquad It does: 
+    \item \begin{prooftree}
+        \hyp{\vdots}
+        \goal{(A \to B \land C) \to (A \to B) \land (A \to C)}
+    \end{prooftree}
+    Program: \s{ } \qquad It does: 
+\end{parts}
+
+% ---------------------------------------------------------------------
+\begin{q}{B9. Checking trees}
+Each tree below has exactly one mistake. Find the bar or leaf that is wrong, and say why.
+\end{q}
+\begin{parts}
+    \item A tree that claims $\vdash A \to B \to A$:
+    {\color{qgrey}\begin{prooftree}
+        \dis{A}{1}
+        \impI[1]{B \to A}
+        \impI{A \to B \to A}
+    \end{prooftree}}
+    Mistake: 
+    \item A tree that claims $\vdash A \lor B \to A$:
+    {\color{qgrey}\begin{prooftree}
+        \dis{A \lor B}{1} \dis{A}{2} \dis{A}{3}
+        \orE{2}{3}{A}
+        \impI[1]{A \lor B \to A}
+    \end{prooftree}}
+    Mistake: 
+    \item A tree that claims $\vdash A \land (A \to A)$:
+    {\color{qgrey}\begin{prooftree}
+        \dis{A}{1}
+        \dis{A}{1}
+        \impI[1]{A \to A}
+        \andI{A \land (A \to A)}
+    \end{prooftree}}
+    Mistake: 
+    \item A tree that claims $A \to B,\ B \vdash A$:
+    {\color{qgrey}\begin{prooftree}
+        \hyp{A \to B} \hyp{B}
+        \impE{A}
+    \end{prooftree}}
+    Mistake: 
+\end{parts}
+
+% ---------------------------------------------------------------------
+\begin{q}{B10. ``Or'' with ``and''}
+Draw a tree with no open hypotheses for each statement. Then decorate it to get its program.
+Hint: every one of them uses ($\lor$E): suppose the ``or'', and argue by cases. In (ii), each branch takes the pair of rules
+apart. In (iii), $\lnot(\lnot A \land \lnot B)$ is $(\lnot A \land \lnot B) \to \bot$: suppose $\lnot A \land \lnot B$, and
+reach $\bot$ as in (ii). In (iv) and (v), each branch must build a whole pair: prove both halves.
+\end{q}
+\begin{parts}
+    \item \begin{prooftree}
+        \hyp{\vdots}
+        \goal{A \lor B \to B \lor A}
+    \end{prooftree}
+    Program: \s{ }
+    \item \begin{prooftree}
+        \hyp{\vdots}
+        \goal{(A \to C) \land (B \to C) \to A \lor B \to C}
+    \end{prooftree}
+    Program: \s{ }
+    \item \begin{prooftree}
+        \hyp{\vdots}
+        \goal{A \lor B \to \lnot(\lnot A \land \lnot B)}
+    \end{prooftree}
+    Program: \s{ }
+    \item \begin{prooftree}
+        \hyp{\vdots}
+        \goal{(A \land B) \lor (A \land C) \to A \land (B \lor C)}
+    \end{prooftree}
+    Program: \s{ }
+    \item \begin{prooftree}
+        \hyp{\vdots}
+        \goal{A \lor (B \land C) \to (A \lor B) \land (A \lor C)}
+    \end{prooftree}
+    Program: \s{ }
+\end{parts}
+
+% ---------------------------------------------------------------------
+\begin{q}{B11. Negation}
+Draw a tree with no open hypotheses for each statement. Then decorate it to get its program.
+Hint: $\lnot A$ is $A \to \bot$, so a statement $\lnot A$ is used with ($\to$E) and proved with ($\to$I). For (iii), suppose
+$\lnot(A \lor \lnot A)$ and aim for $\bot$. Feed that leaf a $\mathsf{Right}$ of something, and build that something using
+the same leaf again.
+\end{q}
+\begin{parts}
+    \item \begin{prooftree}
+        \hyp{\vdots}
+        \goal{A \to \lnot\lnot A}
+    \end{prooftree}
+    Program: \s{ }
+    \item \begin{prooftree}
+        \hyp{\vdots}
+        \goal{(A \to B) \to \lnot B \to \lnot A}
+    \end{prooftree}
+    Program: \s{ }
+    \item \begin{prooftree}
+        \hyp{\vdots}
+        \goal{\lnot\lnot(A \lor \lnot A)}
+    \end{prooftree}
+    Program: \s{ }
+\end{parts}
+
+% ---------------------------------------------------------------------
+\begin{q}{B12. Removing detours}
+Each tree has one detour. Draw the tree without it, decorate both trees (the open leaves' names are beside each tree; name
+the bracketed leaves as you like), and check that the second is one step from the first.
+Hint: in (ii), the ($\to$I) bar discharges two leaves, so the argument's tree is put in two places.
+\end{q}
+\begin{parts}
+    \item $g : C \to A,\ c : C,\ b : B$:
+    {\color{qgrey}\begin{prooftree}
+        \hyp{C \to A} \hyp{C}
+        \impE{A}
+        \hyp{B}
+        \andI{A \land B}
+        \andEii{B}
+    \end{prooftree}}
+    Without the detour:
+    \begin{prooftree}
+        \hyp{\vdots}
+        \goal{B}
+    \end{prooftree}
+    \begin{run}
+        \from{ }   % program of the first tree
+        \st{ }     % program of the second tree
+    \end{run}
+    \item $f : A \to A \to B,\ g : C \to A,\ c : C$:
+    {\color{qgrey}\begin{prooftree}
+        \hyp{A \to A \to B} \dis{A}{1}
+        \impE{A \to B}
+        \dis{A}{1}
+        \impE{B}
+        \impI[1]{A \to B}
+        \hyp{C \to A} \hyp{C}
+        \impE{A}
+        \impE{B}
+    \end{prooftree}}
+    Without the detour:
+    \begin{prooftree}
+        \hyp{\vdots}
+        \goal{B}
+    \end{prooftree}
+    \begin{run}
+        \from{ }
+        \st{ }
+    \end{run}
+    \item $a : A,\ f : A \to C,\ g : B \to C$:
+    {\color{qgrey}\begin{prooftree}
+        \hyp{A}
+        \orIi{A \lor B}
+        \hyp{A \to C} \dis{A}{1}
+        \impE{C}
+        \hyp{B \to C} \dis{B}{2}
+        \impE{C}
+        \orE{1}{2}{C}
+    \end{prooftree}}
+    Without the detour:
+    \begin{prooftree}
+        \hyp{\vdots}
+        \goal{C}
+    \end{prooftree}
+    \begin{run}
+        \from{ }
+        \st{ }
+    \end{run}
+\end{parts}
+
+% ---------------------------------------------------------------------
+\begin{q}{B13. Double negation (for the curious)}
+Try to draw a tree with no open hypotheses for $\lnot\lnot p \to p$, where $p$ is a letter, that is,
+$((p \to \bot) \to \bot) \to p$. Say where every attempt gets stuck.
+\end{q}
+\begin{prooftree}
+    \hyp{\vdots}
+    \goal{((p \to \bot) \to \bot) \to p}
+\end{prooftree}
+Where it gets stuck: 
+
+% ---------------------------------------------------------------------
+\begin{q}{B14. No program for excluded middle (for the curious)}
+Use the three facts of A3(c), and what A3(d) found, to show that there is no closed program of type $p \lor \lnot p$, though
+B11(iii) found one of type $\lnot\lnot(p \lor \lnot p)$.
+Hint: a stopped script that passes the check and does not start with a constructor is a chain of pattern matches hanging
+off a name. Inside \s{\lam{x} N}, the only name around may be $x$.
+\end{q}
+
+
+\end{document}

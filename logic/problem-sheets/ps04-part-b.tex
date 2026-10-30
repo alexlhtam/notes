@@ -1,0 +1,462 @@
+\documentclass[a4paper, 11pt]{article}
+
+\usepackage[margin=3cm]{geometry} 
+\usepackage{amsthm, amsmath, amssymb}
+\usepackage{array}
+\usepackage{bussproofs}
+\usepackage{booktabs}
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
+\newtheorem{example}[definition]{Example}
+\newtheorem{theorem}[definition]{Theorem}
+\newtheorem{lemma}[definition]{Lemma}
+\newtheorem{prop}[definition]{Proposition}
+\newtheorem{corollary}[definition]{Corollary}
+
+% change spacing
+\let\olditemize\itemize
+\renewcommand{\itemize}{\olditemize\setlength{\itemsep}{0pt}\setlength{\parsep}{0pt}}
+\let\oldenumerate\enumerate
+\renewcommand{\enumerate}{\oldenumerate\setlength{\itemsep}{0pt}\setlength{\parsep}{0pt}}
+
+% hilbert proofs
+\newcounter{dline}
+\newenvironment{deduction}[1][\textit{no hypotheses}]
+    {\setcounter{dline}{0}%
+     \[\begin{array}{r|l@{\qquad}l}
+     & #1 \\ \cline{2-2}}
+    {\end{array}\]}
+\newcommand{\dl}[2]{\stepcounter{dline}\thedline & #1 & \text{#2} \\}
+
+% tables
+\newcounter{factrow}
+\newenvironment{comparison}[4][p{0.22\textwidth} p{0.36\textwidth} p{0.36\textwidth}]
+    {\setcounter{factrow}{0}%
+     \begin{center}
+     \begin{tabular}{#1}
+     \textsc{#2} & \textsc{#3} & \textsc{#4} \\[4pt]}
+    {\end{tabular}
+     \end{center}}
+
+% ======================================================================
+% WORKSHEET MACROS: you should only need the commands in this cheat sheet.
+%
+%   SCRIPTS (spaces are application, so just type them as on the sheet)
+%     \s{S K K a}             inline script, e.g. \s{(\lam{x} x z) y}
+%     \lam{x}                 lambda x.  (use inside scripts)
+%
+%   RUNS (each \st is one step; the step count is printed for you)
+%     \begin{run}
+%       \from{K a b c}        the starting script (already filled in)
+%       \st{a c}              one step
+%       \st{a c}[Int]         ... optionally with a type
+%     \end{run}
+%     Write \st{...} with no space before the brace.
+%
+%   CERTIFICATES (numbered automatically)
+%     \begin{deduction}[p \to q,\ p]       hypotheses (leave off for none)
+%       \dl{p \to q}{hypothesis}
+%       \dl{q \to p \to q}{\axI{q, p}}     (I) [q, p]
+%       \dl{q}{\MP{1}{2}}                  MP 1, 2
+%       \ddl{f x}{q}{\MP{1}{2}}            decorated line: script : statement
+%     \end{deduction}
+%
+%   TYPINGS
+%     \begin{typing}
+%       \ty{K K}{C \to A \to B \to A}{(app) 1, 2}   prints  n. |- K K : ...
+%     \end{typing}
+%
+%   TREES (write the tree bottom-up in reading order: premises first, then
+%   the bar that joins them; bussproofs does the layout)
+%     \begin{prooftree}
+%       \hyp{A \to B}  \dis{A}{1}     open leaf, then leaf [A]^1
+%       \impE{B}                      bar with 2 premises
+%       \impI[1]{A \to B}             bar discharging 1  (\impI{..} = none)
+%     \end{prooftree}
+%     Bars: \impE \impI[n] \andI \andEi \andEii \orIi \orIii \orE{i}{j}
+%           \botE \allE \allI \exI \exE{n} \eqI \eqE
+%     Anything else: \unary{label}{A} \binary{label}{A} \trinary{label}{A}
+%     \goal{A}   placeholder: shows A under a \hyp{\vdots}; delete when done
+%
+%   GAPS   \fillin{}  prints a blank line; type inside the braces to fill it
+% ======================================================================
+\usepackage{xcolor}
+\definecolor{qgrey}{gray}{0.4}
+\makeatletter
+
+% questions: the sheet's text in grey, your answer below it
+\newenvironment{q}[1]
+    {\subsection*{#1}\begingroup\small\color{qgrey}}
+    {\par\endgroup\medskip}
+\newenvironment{parts}
+    {\begin{enumerate}\renewcommand{\labelenumi}{(\roman{enumi})}}
+    {\end{enumerate}}
+\newcommand{\fillin}[1]{\if\relax\detokenize{#1}\relax\rule[-2pt]{3em}{0.4pt}\else#1\fi}
+
+% scripts: inside \s{..}, \from, \st, \ty and \ddl a typed space is application
+\begingroup\catcode`\ =\active%
+\gdef {\ifmmode\ \else\space\fi}%
+\endgroup
+\newcommand{\appspaces}{\catcode`\ =\active}
+\newcommand{\s}{\begingroup\appspaces\s@}
+\newcommand{\s@}[1]{\endgroup\ensuremath{#1}}
+\newcommand{\lam}[1]{\lambda #1.}
+
+% runs
+\newcounter{rstep}
+\newenvironment{run}
+    {\setcounter{rstep}{0}\[\begin{array}{r@{\quad}l@{\qquad}l}}
+    {& \ifnum\value{rstep}>0 \text{\small\itshape (\arabic{rstep}~step\ifnum\value{rstep}=1\else s\fi)}\fi \end{array}\]}
+\newcommand{\from}{\begingroup\appspaces\from@}
+\newcommand{\from@}[1]{\endgroup\@ifnextchar[{\run@line{}{#1}}{\run@line{}{#1}[]}}
+\newcommand{\st}{\begingroup\appspaces\st@}
+\newcommand{\st@}[1]{\endgroup\stepcounter{rstep}%
+    \@ifnextchar[{\run@line{\rightsquigarrow}{#1}}{\run@line{\rightsquigarrow}{#1}[]}}
+\def\run@line#1#2[#3]{#1 & #2 & \if\relax\detokenize{#3}\relax\else : #3\fi \\}
+
+% certificates and typings
+\newcommand{\axI}[1]{(I)~$[#1]$}
+\newcommand{\axII}[1]{(II)~$[#1]$}
+\newcommand{\MP}[2]{MP~#1,~#2}
+\newcommand{\ddl}{\begingroup\appspaces\ddl@}
+\newcommand{\ddl@}[1]{\endgroup\ddl@@{#1}}
+\newcommand{\ddl@@}[3]{\dl{#1 : #2}{#3}}
+\newenvironment{typing}
+    {\setcounter{dline}{0}\[\begin{array}{r@{.\ \ }l@{\qquad}l}}
+    {\end{array}\]}
+\newcommand{\ty}{\begingroup\appspaces\ty@}
+\newcommand{\ty@}[1]{\endgroup\ty@@{#1}}
+\newcommand{\ty@@}[3]{\stepcounter{dline}\thedline & \vdash #1 : #2 & \text{#3} \\}
+
+% trees
+\newcommand{\hyp}[1]{\AxiomC{$#1$}}
+\newcommand{\dis}[2]{\AxiomC{$[#1]^{#2}$}}
+\newcommand{\goal}[1]{\noLine\UnaryInfC{$#1$}}
+\newcommand{\rl}[2]{\RightLabel{\scriptsize #1\if\relax\detokenize{#2}\relax\else, #2\fi}}
+\newcommand{\unary}[2]{\RightLabel{\scriptsize #1}\UnaryInfC{$#2$}}
+\newcommand{\binary}[2]{\RightLabel{\scriptsize #1}\BinaryInfC{$#2$}}
+\newcommand{\trinary}[2]{\RightLabel{\scriptsize #1}\TrinaryInfC{$#2$}}
+\newcommand{\impE}[1]{\binary{$\to$E}{#1}}
+\newcommand{\impI}[2][]{\rl{$\to$I}{#1}\UnaryInfC{$#2$}}
+\newcommand{\andI}[1]{\binary{$\land$I}{#1}}
+\newcommand{\andEi}[1]{\unary{$\land$E$_1$}{#1}}
+\newcommand{\andEii}[1]{\unary{$\land$E$_2$}{#1}}
+\newcommand{\orIi}[1]{\unary{$\lor$I$_1$}{#1}}
+\newcommand{\orIii}[1]{\unary{$\lor$I$_2$}{#1}}
+\newcommand{\orE}[3]{\trinary{$\lor$E, #1, #2}{#3}}
+\newcommand{\botE}[1]{\unary{$\bot$E}{#1}}
+\newcommand{\allE}[1]{\unary{$\forall$E}{#1}}
+\newcommand{\allI}[1]{\unary{$\forall$I}{#1}}
+\newcommand{\exI}[1]{\unary{$\exists$I}{#1}}
+\newcommand{\exE}[2]{\binary{$\exists$E, #1}{#2}}
+\newcommand{\eqI}[1]{\AxiomC{}\unary{$=$I}{#1}}
+\newcommand{\eqE}[1]{\binary{$=$E}{#1}}
+
+% names
+\newcommand{\nm}[1]{\mathit{#1}}
+\newcommand{\str}[1]{\text{\texttt{"#1"}}}
+\newcommand{\Int}{\mathsf{Int}}
+\newcommand{\String}{\mathsf{String}}
+\newcommand{\fst}{\mathsf{fst}}
+\newcommand{\snd}{\mathsf{snd}}
+\newcommand{\Left}{\mathsf{Left}}
+\newcommand{\Right}{\mathsf{Right}}
+\newcommand{\absurd}{\mathsf{absurd}}
+\newcommand{\caseof}[5]{\mathsf{case}\ #1\ \mathsf{of}\ \Left\ #2 \Rightarrow #3 \mid \Right\ #4 \Rightarrow #5}
+\makeatother
+
+\begin{document}
+
+\section*{Problem Sheet 4 --- Part B}
+
+% ---------------------------------------------------------------------
+\begin{q}{B1. Reading statements}
+For (i)--(iv), list the free variables and say which are sentences. For (v)--(viii), read $R(x, y)$ as ``$x$ trusts $y$'',
+and say each in plain English.
+\end{q}
+\begin{parts}
+    \item $P(x) \land (\forall x\, Q(x))$: 
+    \item $\forall x\, (P(x) \to \exists y\, R(x, y))$: 
+    \item $(\exists y\, R(x, y)) \to \forall x\, R(x, y)$: 
+    \item $\forall x\, R(x, y)$: 
+    \item $\forall x\, \exists y\, R(x, y)$: 
+    \item $\exists y\, \forall x\, R(x, y)$: 
+    \item $\exists x\, \forall y\, R(x, y)$: 
+    \item $\forall x\, \lnot R(x, x)$: 
+\end{parts}
+
+% ---------------------------------------------------------------------
+\begin{q}{B2. Substitution}
+Write out each, or say why it is not allowed.
+(i) $A(c/x)$, where $A$ is $P(x) \land (\forall x\, Q(x))$.
+(ii) $A(c/x)$ and $A(z/x)$, where $A$ is $\exists y\, R(x, y)$.
+(iii) $A(y/x)$, where $A$ is $\exists y\, R(x, y)$. If you put $y$ in blindly, what does the result say, and what should it
+say? How do you put it right?
+(iv) In Haskell, \texttt{map :: (a -> b) -> [a] -> [b]} has the type $\forall a\, \forall b\, ((a \to b) \to [a] \to [b])$.
+The call \texttt{map show [1, 2]} uses it at \texttt{show :: Int -> String}. Which ($\forall$E) bars does the compiler use,
+with which $t$, and what type do they give?
+\end{q}
+\begin{parts}
+    \item $A(c/x) = $ 
+    \item $A(c/x) = $ \qquad $A(z/x) = $ 
+    \item Blindly: \\ Says: \\ Should say: \\ Fix: 
+    \item 
+\end{parts}
+
+% ---------------------------------------------------------------------
+\begin{q}{B3. Reading trees}
+For each tree, say which hypotheses are open, write what it shows as ``$\Gamma \vdash A$'', and check the side condition at
+each ($\forall$I) and ($\exists$E) bar.
+\end{q}
+\begin{parts}
+    \item {\color{qgrey}\begin{prooftree}
+        \hyp{\forall x\, (P(x) \land Q(x))}
+        \allE{P(u) \land Q(u)}
+        \andEi{P(u)}
+        \allI{\forall x\, P(x)}
+        \hyp{\forall x\, (P(x) \land Q(x))}
+        \allE{P(u) \land Q(u)}
+        \andEii{Q(u)}
+        \allI{\forall x\, Q(x)}
+        \andI{(\forall x\, P(x)) \land (\forall x\, Q(x))}
+    \end{prooftree}}
+    Open: \qquad Shows: $ \vdash $
+
+    Side conditions: 
+    \item {\color{qgrey}\begin{prooftree}
+        \hyp{\exists x\, P(x)}
+        \dis{P(u)}{1}
+        \orIi{P(u) \lor Q(u)}
+        \exI{\exists x\, (P(x) \lor Q(x))}
+        \exE{1}{\exists x\, (P(x) \lor Q(x))}
+    \end{prooftree}}
+    Open: \qquad Shows: $ \vdash $
+
+    Side conditions: 
+\end{parts}
+
+% ---------------------------------------------------------------------
+\begin{q}{B4. ``$\exists$ over $\lor$''}
+Fill in the eight gaps of this tree, which shows $\exists x\, (P(x) \lor Q(x)) \vdash (\exists x\, P(x)) \lor (\exists x\, Q(x))$.
+Type inside each \verb|\fillin{}|.
+\end{q}
+{\small
+\begin{prooftree}
+    \hyp{\exists x\, (P(x) \lor Q(x))}
+    \AxiomC{$[\fillin{}]^{\fillin{}}$}
+    \dis{P(u)}{2}
+    \exI{\fillin{}}
+    \orIi{(\exists x\, P(x)) \lor (\exists x\, Q(x))}
+    \AxiomC{$[\fillin{}]^{3}$}
+    \unary{\fillin{}}{\exists x\, Q(x)}
+    \orIii{(\exists x\, P(x)) \lor (\exists x\, Q(x))}
+    \trinary{$\lor$E, \fillin{}, \fillin{}}{(\exists x\, P(x)) \lor (\exists x\, Q(x))}
+    \binary{$\exists$E, \fillin{}}{(\exists x\, P(x)) \lor (\exists x\, Q(x))}
+\end{prooftree}}
+
+% ---------------------------------------------------------------------
+\begin{q}{B5. Draw a tree}
+Draw a tree with no open hypotheses for each. (iii) The converse of (ii) has no tree. Find two things and a choice of $P$
+and $Q$ for which it is false. Where does an attempt at a tree get stuck?
+\end{q}
+\begin{parts}
+    \item \begin{prooftree}
+        \hyp{\vdots}
+        \goal{(\forall x\, P(x)) \land (\forall x\, Q(x)) \to \forall x\, (P(x) \land Q(x))}
+    \end{prooftree}
+    \item \begin{prooftree}
+        \hyp{\vdots}
+        \goal{(\exists x\, (P(x) \land Q(x))) \to (\exists x\, P(x)) \land (\exists x\, Q(x))}
+    \end{prooftree}
+    \item Two things and $P$, $Q$: \\ Where it gets stuck: 
+\end{parts}
+
+% ---------------------------------------------------------------------
+\begin{q}{B6. Swapping quantifiers}
+Draw a tree with no open hypotheses for each. Hint: in (ii), open both $\exists$s with ($\exists$E) bars near the bottom, with
+two different variables.
+\end{q}
+\begin{parts}
+    \item \begin{prooftree}
+        \hyp{\vdots}
+        \goal{(\forall x\, \forall y\, R(x, y)) \to \forall y\, \forall x\, R(x, y)}
+    \end{prooftree}
+    \item \begin{prooftree}
+        \hyp{\vdots}
+        \goal{(\exists x\, \exists y\, R(x, y)) \to \exists y\, \exists x\, R(x, y)}
+    \end{prooftree}
+\end{parts}
+
+% ---------------------------------------------------------------------
+\begin{q}{B7. The old access policy again}
+(pol1) $\forall x\, \forall y\, (\mathit{adm}(x) \to \mathit{read}(x, y))$;\enspace
+(pol2) $\forall x\, \forall y\, (\mathit{own}(x, y) \to \mathit{adm}(x))$;\enspace
+(fact) $\mathit{own}(\mathit{bob}, \mathit{notes})$, Bob owns his notes.
+(i) Draw a tree for $\mathit{read}(\mathit{bob}, \mathit{notes})$ whose open hypotheses are (pol1), (pol2) and
+$\mathit{own}(\mathit{bob}, \mathit{notes})$. (ii) Add one bar to get $\exists x\, \mathit{read}(x, \mathit{notes})$.
+(iii) Write as a statement: ``nobody may read the log, except administrators'', using a name $\mathit{log}$. Why is
+$\forall x\, (\mathit{adm}(x) \to \mathit{read}(x, \mathit{log}))$ not it?
+\end{q}
+\begin{parts}
+    \item \begin{prooftree}
+        \hyp{\vdots}
+        \goal{\mathit{read}(\mathit{bob}, \mathit{notes})}
+    \end{prooftree}
+    \item \begin{prooftree}
+        \hyp{\vdots}
+        \goal{\mathit{read}(\mathit{bob}, \mathit{notes})}
+        \exI{\exists x\, \mathit{read}(x, \mathit{notes})}
+    \end{prooftree}
+    \item Statement: $ $ \\ Why not: 
+\end{parts}
+
+% ---------------------------------------------------------------------
+\begin{q}{B8. ``Nobody may read the vault''}
+Can be written $\lnot \exists x\, P(x)$ or $\forall x\, \lnot P(x)$, with $P(x)$ for $\mathit{read}(x, \mathit{vault})$. Show
+that the two say the same thing: draw a tree with no open hypotheses for each. Hint: $\lnot A$ is $A \to \bot$: to prove
+it, suppose $A$ and aim for $\bot$.
+\end{q}
+\begin{parts}
+    \item \begin{prooftree}
+        \hyp{\vdots}
+        \goal{\lnot \exists x\, P(x) \to \forall x\, \lnot P(x)}
+    \end{prooftree}
+    \item \begin{prooftree}
+        \hyp{\vdots}
+        \goal{(\forall x\, \lnot P(x)) \to \lnot \exists x\, P(x)}
+    \end{prooftree}
+\end{parts}
+
+% ---------------------------------------------------------------------
+\begin{q}{B9. Equality}
+Draw a tree with no open hypotheses for each. Why are these two not rules of their own? Hint: for (i), suppose $u = v$. Use
+($=$E) with $A$ the statement $z = u$: then $A(u/z)$ is $u = u$, which ($=$I) gives, and $A(v/z)$ is $v = u$.
+\end{q}
+\begin{parts}
+    \item \begin{prooftree}
+        \hyp{\vdots}
+        \goal{\forall x\, \forall y\, (x = y \to y = x)}
+    \end{prooftree}
+    \item \begin{prooftree}
+        \hyp{\vdots}
+        \goal{\forall x\, \forall y\, \forall z\, (x = y \land y = z \to x = z)}
+    \end{prooftree}
+\end{parts}
+Why not rules of their own: 
+
+% ---------------------------------------------------------------------
+\begin{q}{B10. Something exists}
+Draw a tree with no open hypotheses for each. What does (i) say about the world, and why might that be a surprise?
+\end{q}
+\begin{parts}
+    \item \begin{prooftree}
+        \hyp{\vdots}
+        \goal{\exists x\, (x = x)}
+    \end{prooftree}
+    It says: 
+    \item \begin{prooftree}
+        \hyp{\vdots}
+        \goal{(\exists x\, P(x)) \to \lnot \forall x\, \lnot P(x)}
+    \end{prooftree}
+\end{parts}
+
+% ---------------------------------------------------------------------
+\begin{q}{B11. Checking trees}
+Each tree below has exactly one mistake. Find the bar that is wrong, and say which condition it breaks.
+\end{q}
+\begin{parts}
+    \item A tree that claims $\forall x\, \lnot \forall y\, (y = x) \vdash \bot$:
+    {\color{qgrey}\begin{prooftree}
+        \hyp{\forall x\, \lnot \forall y\, (y = x)}
+        \allE{\lnot \forall y\, (y = y)}
+        \eqI{y = y}
+        \allI{\forall y\, (y = y)}
+        \impE{\bot}
+    \end{prooftree}}
+    Mistake: 
+    \item A tree that claims $\exists x\, P(x),\ Q(u) \vdash \exists x\, (P(x) \land Q(x))$:
+    {\color{qgrey}\begin{prooftree}
+        \hyp{\exists x\, P(x)}
+        \dis{P(u)}{1} \hyp{Q(u)}
+        \andI{P(u) \land Q(u)}
+        \exI{\exists x\, (P(x) \land Q(x))}
+        \exE{1}{\exists x\, (P(x) \land Q(x))}
+    \end{prooftree}}
+    Mistake: 
+    \item A tree that claims $\vdash \forall y\, \forall x\, (x = y)$:
+    {\color{qgrey}\begin{prooftree}
+        \eqI{u = u}
+        \allI{\forall x\, (x = u)}
+        \allI{\forall y\, \forall x\, (x = y)}
+    \end{prooftree}}
+    Mistake: 
+    \item A tree that claims $\exists x\, R(x, u) \vdash \exists x\, R(x, x)$:
+    {\color{qgrey}\begin{prooftree}
+        \hyp{\exists x\, R(x, u)}
+        \dis{R(u, u)}{1}
+        \exI{\exists x\, R(x, x)}
+        \exE{1}{\exists x\, R(x, x)}
+    \end{prooftree}}
+    Mistake: 
+\end{parts}
+
+% ---------------------------------------------------------------------
+\begin{q}{B12. A quantifier inside an implication}
+Draw a tree with no open hypotheses for each, and say each in plain English, with $P(x)$ for ``$x$ has signed'' and $Q(x)$
+for ``$x$ may vote''.
+\end{q}
+\begin{parts}
+    \item \begin{prooftree}
+        \hyp{\vdots}
+        \goal{(\forall x\, (P(x) \to Q(x))) \to (\forall x\, P(x)) \to \forall x\, Q(x)}
+    \end{prooftree}
+    In English: 
+    \item \begin{prooftree}
+        \hyp{\vdots}
+        \goal{(\forall x\, (P(x) \to Q(x))) \to (\exists x\, P(x)) \to \exists x\, Q(x)}
+    \end{prooftree}
+    In English: 
+    \item \begin{prooftree}
+        \hyp{\vdots}
+        \goal{(\exists x\, (P(x) \to C)) \to (\forall x\, P(x)) \to C}
+    \end{prooftree}
+    In English: 
+\end{parts}
+
+% ---------------------------------------------------------------------
+\begin{q}{B13. No side condition (for the curious)}
+Suppose ($\forall$I) had no side condition. (i) From the hypothesis $u = c$, derive $\forall x\, (x = c)$ in one bar. Then
+derive, with no open hypotheses, first $u = c \to \forall x\, (x = c)$ and then $\forall x\, (x = c)$. (ii) Conclude $\bot$
+from the hypothesis $\lnot \forall x\, (x = c)$, which says only that $c$ is not the only thing there is. (iii) Which bar
+does the real rule forbid? What would the Haskell compiler call $u$?
+\end{q}
+\begin{parts}
+    \item \begin{prooftree}
+        \hyp{u = c}
+        \allI{\forall x\, (x = c)}
+    \end{prooftree}
+    \begin{prooftree}
+        \hyp{\vdots}
+        \goal{\forall x\, (x = c)}
+    \end{prooftree}
+    \item \begin{prooftree}
+        \hyp{\vdots}
+        \goal{\bot}
+    \end{prooftree}
+    \item 
+\end{parts}
+
+% ---------------------------------------------------------------------
+\begin{q}{B14. The converse (for the curious)}
+B10(ii) showed $(\exists x\, P(x)) \to \lnot \forall x\, \lnot P(x)$. Try to draw a tree with no open hypotheses for the
+converse, $\lnot \forall x\, \lnot P(x) \to \exists x\, P(x)$, and say where every attempt gets stuck. Compare A3(b): what
+would a tree for it have to do that the hypothesis cannot?
+\end{q}
+\begin{prooftree}
+    \hyp{\vdots}
+    \goal{\lnot \forall x\, \lnot P(x) \to \exists x\, P(x)}
+\end{prooftree}
+Where it gets stuck: 
+
+\end{document}

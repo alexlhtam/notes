@@ -1,0 +1,444 @@
+\documentclass[a4paper, 11pt]{article}
+
+\usepackage[margin=3cm]{geometry} 
+\usepackage{amsthm, amsmath, amssymb}
+\usepackage{array}
+\usepackage{bussproofs}
+\usepackage{booktabs}
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
+\newtheorem{example}[definition]{Example}
+\newtheorem{theorem}[definition]{Theorem}
+\newtheorem{lemma}[definition]{Lemma}
+\newtheorem{prop}[definition]{Proposition}
+\newtheorem{corollary}[definition]{Corollary}
+
+% change spacing
+\let\olditemize\itemize
+\renewcommand{\itemize}{\olditemize\setlength{\itemsep}{0pt}\setlength{\parsep}{0pt}}
+\let\oldenumerate\enumerate
+\renewcommand{\enumerate}{\oldenumerate\setlength{\itemsep}{0pt}\setlength{\parsep}{0pt}}
+
+% hilbert proofs
+\newcounter{dline}
+\newenvironment{deduction}[1][\textit{no hypotheses}]
+    {\setcounter{dline}{0}%
+     \[\begin{array}{r|l@{\qquad}l}
+     & #1 \\ \cline{2-2}}
+    {\end{array}\]}
+\newcommand{\dl}[2]{\stepcounter{dline}\thedline & #1 & \text{#2} \\}
+
+% tables
+\newcounter{factrow}
+\newenvironment{comparison}[4][p{0.22\textwidth} p{0.36\textwidth} p{0.36\textwidth}]
+    {\setcounter{factrow}{0}%
+     \begin{center}
+     \begin{tabular}{#1}
+     \textsc{#2} & \textsc{#3} & \textsc{#4} \\[4pt]}
+    {\end{tabular}
+     \end{center}}
+
+% ======================================================================
+% WORKSHEET MACROS: you should only need the commands in this cheat sheet.
+%
+%   SCRIPTS (spaces are application, so just type them as on the sheet)
+%     \s{S K K a}             inline script, e.g. \s{(\lam{x} x z) y}
+%     \lam{x}                 lambda x.  (use inside scripts)
+%
+%   RUNS (each \st is one step; the step count is printed for you)
+%     \begin{run}
+%       \from{K a b c}        the starting script (already filled in)
+%       \st{a c}              one step
+%       \st{a c}[Int]         ... optionally with a type
+%     \end{run}
+%     Write \st{...} with no space before the brace.
+%
+%   CERTIFICATES (numbered automatically)
+%     \begin{deduction}[p \to q,\ p]       hypotheses (leave off for none)
+%       \dl{p \to q}{hypothesis}
+%       \dl{q \to p \to q}{\axI{q, p}}     (I) [q, p]
+%       \dl{q}{\MP{1}{2}}                  MP 1, 2
+%       \ddl{f x}{q}{\MP{1}{2}}            decorated line: script : statement
+%     \end{deduction}
+%
+%   TYPINGS
+%     \begin{typing}
+%       \ty{K K}{C \to A \to B \to A}{(app) 1, 2}   prints  n. |- K K : ...
+%     \end{typing}
+%
+%   TREES (write the tree bottom-up in reading order: premises first, then
+%   the bar that joins them; bussproofs does the layout)
+%     \begin{prooftree}
+%       \hyp{A \to B}  \dis{A}{1}     open leaf, then leaf [A]^1
+%       \impE{B}                      bar with 2 premises
+%       \impI[1]{A \to B}             bar discharging 1  (\impI{..} = none)
+%     \end{prooftree}
+%     Bars: \impE \impI[n] \andI \andEi \andEii \orIi \orIii \orE{i}{j}
+%           \botE \allE \allI \exI \exE{n} \eqI \eqE
+%     Anything else: \unary{label}{A} \binary{label}{A} \trinary{label}{A}
+%     \goal{A}   placeholder: shows A under a \hyp{\vdots}; delete when done
+%
+%   GAPS   \fillin{}  prints a blank line; type inside the braces to fill it
+% ======================================================================
+\usepackage{xcolor}
+\definecolor{qgrey}{gray}{0.4}
+\makeatletter
+
+% questions: the sheet's text in grey, your answer below it
+\newenvironment{q}[1]
+    {\subsection*{#1}\begingroup\small\color{qgrey}}
+    {\par\endgroup\medskip}
+\newenvironment{parts}
+    {\begin{enumerate}\renewcommand{\labelenumi}{(\roman{enumi})}}
+    {\end{enumerate}}
+\newcommand{\fillin}[1]{\if\relax\detokenize{#1}\relax\rule[-2pt]{3em}{0.4pt}\else#1\fi}
+
+% scripts: inside \s{..}, \from, \st, \ty and \ddl a typed space is application
+\begingroup\catcode`\ =\active%
+\gdef {\ifmmode\ \else\space\fi}%
+\endgroup
+\newcommand{\appspaces}{\catcode`\ =\active}
+\newcommand{\s}{\begingroup\appspaces\s@}
+\newcommand{\s@}[1]{\endgroup\ensuremath{#1}}
+\newcommand{\lam}[1]{\lambda #1.}
+
+% runs
+\newcounter{rstep}
+\newenvironment{run}
+    {\setcounter{rstep}{0}\[\begin{array}{r@{\quad}l@{\qquad}l}}
+    {& \ifnum\value{rstep}>0 \text{\small\itshape (\arabic{rstep}~step\ifnum\value{rstep}=1\else s\fi)}\fi \end{array}\]}
+\newcommand{\from}{\begingroup\appspaces\from@}
+\newcommand{\from@}[1]{\endgroup\@ifnextchar[{\run@line{}{#1}}{\run@line{}{#1}[]}}
+\newcommand{\st}{\begingroup\appspaces\st@}
+\newcommand{\st@}[1]{\endgroup\stepcounter{rstep}%
+    \@ifnextchar[{\run@line{\rightsquigarrow}{#1}}{\run@line{\rightsquigarrow}{#1}[]}}
+\def\run@line#1#2[#3]{#1 & #2 & \if\relax\detokenize{#3}\relax\else : #3\fi \\}
+
+% certificates and typings
+\newcommand{\axI}[1]{(I)~$[#1]$}
+\newcommand{\axII}[1]{(II)~$[#1]$}
+\newcommand{\MP}[2]{MP~#1,~#2}
+\newcommand{\ddl}{\begingroup\appspaces\ddl@}
+\newcommand{\ddl@}[1]{\endgroup\ddl@@{#1}}
+\newcommand{\ddl@@}[3]{\dl{#1 : #2}{#3}}
+\newenvironment{typing}
+    {\setcounter{dline}{0}\[\begin{array}{r@{.\ \ }l@{\qquad}l}}
+    {\end{array}\]}
+\newcommand{\ty}{\begingroup\appspaces\ty@}
+\newcommand{\ty@}[1]{\endgroup\ty@@{#1}}
+\newcommand{\ty@@}[3]{\stepcounter{dline}\thedline & \vdash #1 : #2 & \text{#3} \\}
+
+% trees
+\newcommand{\hyp}[1]{\AxiomC{$#1$}}
+\newcommand{\dis}[2]{\AxiomC{$[#1]^{#2}$}}
+\newcommand{\goal}[1]{\noLine\UnaryInfC{$#1$}}
+\newcommand{\rl}[2]{\RightLabel{\scriptsize #1\if\relax\detokenize{#2}\relax\else, #2\fi}}
+\newcommand{\unary}[2]{\RightLabel{\scriptsize #1}\UnaryInfC{$#2$}}
+\newcommand{\binary}[2]{\RightLabel{\scriptsize #1}\BinaryInfC{$#2$}}
+\newcommand{\trinary}[2]{\RightLabel{\scriptsize #1}\TrinaryInfC{$#2$}}
+\newcommand{\impE}[1]{\binary{$\to$E}{#1}}
+\newcommand{\impI}[2][]{\rl{$\to$I}{#1}\UnaryInfC{$#2$}}
+\newcommand{\andI}[1]{\binary{$\land$I}{#1}}
+\newcommand{\andEi}[1]{\unary{$\land$E$_1$}{#1}}
+\newcommand{\andEii}[1]{\unary{$\land$E$_2$}{#1}}
+\newcommand{\orIi}[1]{\unary{$\lor$I$_1$}{#1}}
+\newcommand{\orIii}[1]{\unary{$\lor$I$_2$}{#1}}
+\newcommand{\orE}[3]{\trinary{$\lor$E, #1, #2}{#3}}
+\newcommand{\botE}[1]{\unary{$\bot$E}{#1}}
+\newcommand{\allE}[1]{\unary{$\forall$E}{#1}}
+\newcommand{\allI}[1]{\unary{$\forall$I}{#1}}
+\newcommand{\exI}[1]{\unary{$\exists$I}{#1}}
+\newcommand{\exE}[2]{\binary{$\exists$E, #1}{#2}}
+\newcommand{\eqI}[1]{\AxiomC{}\unary{$=$I}{#1}}
+\newcommand{\eqE}[1]{\binary{$=$E}{#1}}
+
+% names
+\newcommand{\nm}[1]{\mathit{#1}}
+\newcommand{\str}[1]{\text{\texttt{"#1"}}}
+\newcommand{\Int}{\mathsf{Int}}
+\newcommand{\String}{\mathsf{String}}
+\newcommand{\fst}{\mathsf{fst}}
+\newcommand{\snd}{\mathsf{snd}}
+\newcommand{\Left}{\mathsf{Left}}
+\newcommand{\Right}{\mathsf{Right}}
+\newcommand{\absurd}{\mathsf{absurd}}
+\newcommand{\caseof}[5]{\mathsf{case}\ #1\ \mathsf{of}\ \Left\ #2 \Rightarrow #3 \mid \Right\ #4 \Rightarrow #5}
+\makeatother
+
+\begin{document}
+
+\section*{Problem Sheet 2 --- Part B}
+
+% ---------------------------------------------------------------------
+\begin{q}{B1. Brackets}
+Insert the brackets that right-grouping hides: (i) $p \to q \to r \to s$; (ii) $(p \to q) \to r \to s$;
+(iii) $p \to (q \to r) \to s$. Then say which two of these are the same statement: (iv) $p \to (q \to r)$;
+(v) $(p \to q) \to r$; (vi) $p \to q \to r$.
+\end{q}
+\begin{parts}
+    \item $p \to q \to r \to s$ \quad = \quad $ $
+    \item $(p \to q) \to r \to s$ \quad = \quad $ $
+    \item $p \to (q \to r) \to s$ \quad = \quad $ $
+\end{parts}
+The same statement: 
+
+% ---------------------------------------------------------------------
+\begin{q}{B2. Name the axiom}
+Fill in the reason for each line: (I) or (II) with what was put in place of the letters, or ``neither''.
+\end{q}
+\begin{parts}
+    \item $q \to p \to q$: 
+    \item $(p \to q) \to (p \to q) \to (p \to q)$: 
+    \item $p \to (q \to r) \to p$: 
+    \item $(p \to q) \to p \to q$: 
+    \item $(q \to q \to q) \to (q \to q) \to q \to q$: 
+    \item $(p \to q \to r) \to (p \to r) \to p \to r$: 
+\end{parts}
+
+% ---------------------------------------------------------------------
+\begin{q}{B3. Fill in the statement}
+Fill in the statement for each reason. Then fill in the gaps in the certificate from the hypothesis $p \to q \to r$.
+\end{q}
+\begin{parts}
+    \item \axI{p, p}: \quad $ $
+    \item \axI{q \to p, r}: \quad $ $
+    \item \axII{p, p \to q, r}: \quad $ $
+\end{parts}
+\begin{deduction}[p \to q \to r]
+    \dl{p \to q \to r}{hypothesis}
+    \dl{\fillin{}}{\axII{p, q, r}}
+    \dl{\fillin{}}{\MP{2}{1}}
+    \dl{\fillin{}}{\axI{(p \to q) \to p \to r,\ q}}
+    \dl{\fillin{}}{\MP{4}{3}}
+\end{deduction}
+
+% ---------------------------------------------------------------------
+\begin{q}{B4. Is it a certificate?}
+Is each list a certificate for its last line from the hypotheses given? If not, find the first line that fails, and say why.
+\end{q}
+\begin{parts}
+    \item \begin{deduction}[p \to q,\ q \to r,\ p]
+        \dl{p}{hypothesis}
+        \dl{p \to q}{hypothesis}
+        \dl{q}{\MP{2}{1}}
+        \dl{q \to r}{hypothesis}
+        \dl{r}{\MP{4}{3}}
+    \end{deduction}
+    Answer: 
+    \item \begin{deduction}[p \to q,\ q]
+        \dl{p \to q}{hypothesis}
+        \dl{q}{hypothesis}
+        \dl{p}{\MP{1}{2}}
+    \end{deduction}
+    Answer: 
+    \item \begin{deduction}[q]
+        \dl{q}{hypothesis}
+        \dl{q \to p \to q}{\axI{q, p}}
+        \dl{p \to q}{\MP{2}{1}}
+    \end{deduction}
+    Answer: 
+    \item \begin{deduction}[p \to q,\ p]
+        \dl{p \to q}{hypothesis}
+        \dl{q}{\MP{1}{3}}
+        \dl{p}{hypothesis}
+    \end{deduction}
+    Answer: 
+\end{parts}
+
+% ---------------------------------------------------------------------
+\begin{q}{B5. Write a certificate}
+(i) $p \to q \to r,\ p,\ q \vdash r$\quad (ii) $p \to q,\ q \to r,\ p \vdash r$\quad (iii) $q \vdash p \to q$\quad
+(iv) $p \to q \to r,\ q \vdash p \to r$ (seven lines; you need one (I) and one (II) line)
+\end{q}
+\begin{parts}
+    \item \begin{deduction}[p \to q \to r,\ p,\ q]
+        \dl{ }{ }
+    \end{deduction}
+    \item \begin{deduction}[p \to q,\ q \to r,\ p]
+        \dl{ }{ }
+    \end{deduction}
+    \item \begin{deduction}[q]
+        \dl{ }{ }
+    \end{deduction}
+    \item \begin{deduction}[p \to q \to r,\ q]
+        \dl{ }{ }
+    \end{deduction}
+\end{parts}
+
+% ---------------------------------------------------------------------
+\begin{q}{B6. Gluing certificates}
+A2(b)'s certificate, with $p, q, r$ for $y, s, m$, shows $p \to q,\ q \to r \vdash p \to r$ in seven lines; with $r, s$ for
+$q, r$ it shows $p \to r,\ r \to s \vdash p \to s$.
+(i) Explain how to glue the two into a certificate for $p \to q,\ q \to r,\ r \to s \vdash p \to s$, and say how many lines
+it has. (ii) Why is a certificate from $\Gamma$ also a certificate from $\Gamma$ with one more hypothesis added?
+(iii) Can a certificate use infinitely many hypotheses? Why not?
+\end{q}
+\begin{parts}
+    \item 
+    \item 
+    \item 
+\end{parts}
+
+% ---------------------------------------------------------------------
+\begin{q}{B7. Rub out the scripts}
+On Sheet 1, B11 typed \s{K K} like this:
+\begin{typing}
+    \ty{K}{(A \to B \to A) \to C \to A \to B \to A}{(K)}
+    \ty{K}{A \to B \to A}{(K)}
+    \ty{K K}{C \to A \to B \to A}{(app) 1, 2}
+\end{typing}
+Erase it, with $p, q, r$ for $A, B, C$, and give the justification of each line. Then run \s{K K x y z} and say what the
+script does.
+\end{q}
+\begin{deduction}
+    \dl{ }{ }
+    \dl{ }{ }
+    \dl{ }{ }
+\end{deduction}
+\begin{run}
+    \from{K K x y z}
+\end{run}
+It does: 
+
+% ---------------------------------------------------------------------
+\begin{q}{B8. Flip, without the recipe}
+Here is a certificate for $p \to q \to r \vdash q \to p \to r$. Check lines 4 and 6. Decorate the certificate, calling
+the hypothesis $f$, and run the script on line 9 applied to $b$ and then $a$. What does it do?
+\end{q}
+\begin{deduction}[p \to q \to r]
+    \dl{p \to q \to r}{hypothesis}
+    \dl{(p \to q \to r) \to (p \to q) \to p \to r}{\axII{p, q, r}}
+    \dl{(p \to q) \to p \to r}{\MP{2}{1}}
+    \dl{((p \to q) \to p \to r) \to q \to (p \to q) \to p \to r}{\axI{(p \to q) \to p \to r,\ q}}
+    \dl{q \to (p \to q) \to p \to r}{\MP{4}{3}}
+    \dl{(q \to (p \to q) \to p \to r) \to (q \to p \to q) \to q \to p \to r}{\axII{q,\ p \to q,\ p \to r}}
+    \dl{(q \to p \to q) \to q \to p \to r}{\MP{6}{5}}
+    \dl{q \to p \to q}{\axI{q, p}}
+    \dl{q \to p \to r}{\MP{7}{8}}
+\end{deduction}
+Lines 4 and 6: 
+
+Decorated (fill in each script):
+\begin{deduction}[f : p \to q \to r]
+    \ddl{f}{p \to q \to r}{hypothesis}
+    \ddl{S}{(p \to q \to r) \to (p \to q) \to p \to r}{\axII{p, q, r}}
+    \ddl{ }{(p \to q) \to p \to r}{\MP{2}{1}}
+    \ddl{ }{((p \to q) \to p \to r) \to q \to (p \to q) \to p \to r}{\axI{(p \to q) \to p \to r,\ q}}
+    \ddl{ }{q \to (p \to q) \to p \to r}{\MP{4}{3}}
+    \ddl{ }{(q \to (p \to q) \to p \to r) \to (q \to p \to q) \to q \to p \to r}{\axII{q,\ p \to q,\ p \to r}}
+    \ddl{ }{(q \to p \to q) \to q \to p \to r}{\MP{6}{5}}
+    \ddl{ }{q \to p \to q}{\axI{q, p}}
+    \ddl{ }{q \to p \to r}{\MP{7}{8}}
+\end{deduction}
+\begin{run}
+    \from{ b a}   % put line 9's script in front of b a
+\end{run}
+It does: 
+
+% ---------------------------------------------------------------------
+\begin{q}{B9. Two detours}
+Decorate this certificate for $q$ from $p \to q,\ p,\ r,\ s$, calling the hypotheses $f, x, y, z$, and run the script on
+its last line to the end. How many lines does the certificate for the final script have?
+\end{q}
+\begin{deduction}[f : p \to q,\ x : p,\ y : r,\ z : s]
+    \ddl{f}{p \to q}{hypothesis}
+    \ddl{x}{p}{hypothesis}
+    \ddl{ }{q}{\MP{1}{2}}
+    \ddl{ }{q \to r \to q}{\axI{q, r}}
+    \ddl{ }{r \to q}{\MP{4}{3}}
+    \ddl{y}{r}{hypothesis}
+    \ddl{ }{q}{\MP{5}{6}}
+    \ddl{ }{q \to s \to q}{\axI{q, s}}
+    \ddl{ }{s \to q}{\MP{8}{7}}
+    \ddl{z}{s}{hypothesis}
+    \ddl{ }{q}{\MP{9}{10}}
+\end{deduction}
+\begin{run}
+    \from{ }   % line 11's script
+\end{run}
+Lines in the certificate for the final script: 
+
+% ---------------------------------------------------------------------
+\begin{q}{B10. Use the recipe of A3}
+(i) $\vdash p \to p$. Which lines does the machine write for you? (ii) $\vdash (p \to q) \to (q \to r) \to p \to r$
+(iii) $\vdash p \to (p \to q) \to q$ (iv) $p \to q \to r \vdash q \to p \to r$ (compare B8)
+\end{q}
+\begin{parts}
+    \item \begin{deduction}
+        \dl{ }{ }
+    \end{deduction}
+    The machine writes: 
+    \item \begin{deduction}
+        \dl{ }{ }
+    \end{deduction}
+    \item \begin{deduction}
+        \dl{ }{ }
+    \end{deduction}
+    \item \begin{deduction}[p \to q \to r]
+        \dl{ }{ }
+    \end{deduction}
+\end{parts}
+
+% ---------------------------------------------------------------------
+\begin{q}{B11. Run the machine}
+Run the machine of A3(c) on this certificate for $p \vdash q \to p$, discharging $p$. How many lines does the machine
+write, and what is the last line? Is there a shorter certificate for that? Decorate the machine's output and run the
+script on $x$ and then $y$.
+\begin{deduction}[p]
+    \dl{p \to q \to p}{\axI{p, q}}
+    \dl{p}{hypothesis}
+    \dl{q \to p}{\MP{1}{2}}
+\end{deduction}
+\end{q}
+\begin{deduction}
+    \ddl{ }{ }{ }
+\end{deduction}
+Number of lines: \qquad Last line: 
+
+Shorter certificate: 
+\begin{run}
+    \from{ x y}   % put the last line's script in front of x y
+\end{run}
+
+% ---------------------------------------------------------------------
+\begin{q}{B12. Counting letters}
+In A3, line 1 of Alice's certificate was (II) $[P, Q, R]$ with $P$ for $s \to m$, $Q$ for $y \to s \to m$ and $R$ for
+$(y \to s) \to y \to m$. Write it out with $P, Q, R$ replaced, and confirm that it has twenty letters and nineteen arrows.
+Line 1 redoes, one level up and under the hypothesis $P$, one of the MP lines of A2(b)'s certificate. Which one?
+\end{q}
+\[ \]
+Letters: \qquad Arrows: 
+
+Which MP line: 
+
+% ---------------------------------------------------------------------
+\begin{q}{B13. A shortcut for the machine (for the curious)}
+Suppose a line $C$ was obtained without using $A$ anywhere above it. Show that, if the machine keeps the lines that obtained
+$C$, two more lines give $A \to C$, whatever kind of line $C$ is. What does this shortcut do to scripts? Why does it make
+the machine's output shorter?
+\end{q}
+\begin{deduction}[\ldots]
+    \dl{C}{(however $C$ was obtained)}
+    \dl{ }{ }
+    \dl{ }{ }
+\end{deduction}
+To scripts: 
+
+Why shorter: 
+
+% ---------------------------------------------------------------------
+\begin{q}{B14. Write a checker (for the curious)}
+Write a checker: a program (in Python, Haskell, or careful pseudocode) that takes a list of statements, each with its
+justification, and a list of hypotheses, and says whether the list is a certificate. How long does it take, in the length
+of the list? Which part of your program corresponds to rule (var) of a type checker, and which to (app)?
+\end{q}
+\begin{verbatim}
+def is_certificate(lines, hypotheses):
+    ...
+\end{verbatim}
+Running time: 
+
+(var) / (app): 
+
+\end{document}
