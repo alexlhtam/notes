@@ -40,7 +40,7 @@
 
 
 \begin{document}
-\section{Memory Units and Introduction to MIPS}
+\section{Memory Units and MIPS}
 
 \subsection{Memory Units}
 A binary digit (a bit) is a single $0/1$ digit. A byte (nowadays) is a unit of $8$ bytes, and a kilobyte (KB) is
@@ -204,7 +204,7 @@ $\underbrace{\texttt{000000}}_{\mbox{opcode}}\,
  \underbrace{\texttt{101011}}_{\mbox{funct = 2b}_{\rm hex}}$
 \end{center}
 
-\subsection{Shift Instructions}
+\subsubsection{Shift Instructions}
 \begin{center}
 \texttt{srl \$11, \$7, 4} \qquad \texttt{0x00075842} \qquad R[rd] = R[rt] $\gg$ shamt \quad (rs is 0)
 
@@ -235,18 +235,18 @@ $\underbrace{\texttt{000000}}_{\mbox{opcode}}\,
 \end{array}
 \]
 
-\subsection{Pseudo Instructions}
+\subsubsection{Pseudo Instructions}
 There also exists \textit{pseudo} instructions that are not real MIPS32 instructions (i.e. they do not have opcodes and
 aren't recognised by the CPU), but they can be translated into real instructions by the assembler. For example, \texttt{
 move \$8, \$9} can be translated into \texttt{add \$8, \$9, \$0}.
 
-\subsection{High-level Commands}
+\subsubsection{High-level Commands}
 Going one way, we have the \textbf{disassembly} of machine code to assembly code and \textbf{reverse engineering} of
 assembly code to high level code like \texttt{x = a - b + c - d;}. In contrast, going from a high level language to 
 assembly is \textbf{not unique}. There are multiple heuristics for optimisation, but going from assembly to machine code
 \textbf{is} unique.
 
-\subsection{Example of \textbf{R}-Type Instructions}
+\subsubsection{Example of \textbf{R}-Type Instructions}
 \begin{center}
 \begin{tabular}{|llll|}
     \hline
@@ -266,6 +266,97 @@ assembly is \textbf{not unique}. There are multiple heuristics for optimisation,
     \hline
 \end{tabular}
 \end{center}
+
+\newpage
+\subsection{\textbf{I}-mmediate Instructions}
+
+Memory addresses are 32-bit long, as are the registers. A single way to compute a memory address:
+\[
+\text{Base (register value)} + \text{Displacement (Imm value)}
+\]
+\[
+\underbrace{\texttt{0x20}}_{\text{Displacement}}
+(\underbrace{\texttt{\$8}}_{\text{Base}})
+\]
+If \texttt{\$8 = 0x10010000}, then \texttt{0x20(\$8)} is the address \texttt{0x10010020}. Working with integer arrays:
+\begin{itemize}
+    \item \texttt{A[8] = y;}
+    \item Say \texttt{\$8} stores the address of \texttt{A} and \texttt{\$9} stores $y$
+\end{itemize}
+\textbf{Store Word} (\texttt{sw}, I-type, opcode \texttt{0x2b}):
+\quad $M[R[rs] + \mathrm{SignExtImm}] = R[rt]$
+
+\[
+\texttt{sw \$9, 0x20(\$8)}
+\;\Longrightarrow\;
+\underbrace{\texttt{101011}}_{\text{op}}\;
+\underbrace{\texttt{01000}}_{rs = \$8}\;
+\underbrace{\texttt{01001}}_{rt = \$9}\;
+\underbrace{\texttt{0000000000100000}}_{\text{imm} = \texttt{0x20}}
+= \texttt{0xad090020}
+\] \\
+\textbf{Load Word} (\texttt{lw}, I-type, opcode \texttt{0x23}):
+\quad $R[rt] = M[R[rs] + \mathrm{SignExtImm}]$
+
+Example: \texttt{z = A[10];} loads \texttt{A[10]} into \texttt{\$10}.
+
+\[
+\texttt{lw \$10, 0x28(\$8)}
+\;\Longrightarrow\;
+\underbrace{\texttt{100011}}_{\text{op}}\;
+\underbrace{\texttt{01000}}_{rs = \$8}\;
+\underbrace{\texttt{01010}}_{rt = \$10}\;
+\underbrace{\texttt{0000000000101000}}_{\text{imm} = \texttt{0x28}}
+= \texttt{0x8d0a0028}
+\]
+
+\textit{Note:} the address $R[rs] + \mathrm{SignExtImm}$ must be word-aligned. \\
+
+Immediate memory instructions also works with byte and half word granularities, and supports zero-extensions.
+\begin{itemize}
+    \item Load/store bytes (\texttt{lb} / \texttt{sb})
+    \item Load/store half-word (\texttt{lh} / \texttt{sh}) (half-word aligned)
+    \item Are sign-extended
+\end{itemize}
+
+\subsubsection{\textbf{I}-mmediate value assignment}
+In Java/C, we may want to do a variable assignment such as \texttt{int x = 7654321;}. How would that be translated to
+MIPS?
+
+\begin{center}
+\begin{tabular}{|c|c|c|c|}
+    \hline
+    \makebox[2cm]{opcode} & \makebox[1.6cm]{rs} & \makebox[1.6cm]{rt} & \makebox[5cm]{immediate} \\
+    \hline
+    \multicolumn{1}{c}{6 bits} & \multicolumn{1}{c}{5 bits} & \multicolumn{1}{c}{5 bits} & \multicolumn{1}{c}{16 bits} \\
+\end{tabular}
+\end{center}
+
+
+The pseudo-instruction \texttt{li \$8, 7654321} is expanded by the assembler into two CPU instructions, since $7654321_{10} = \texttt{0x74cbb1}$ does not fit in a 16-bit immediate:
+
+\[
+\underbrace{\texttt{li \$8, 7654321}}_{\text{pseudo-instruction}}
+\;\Longrightarrow\;
+\underbrace{
+  \begin{array}{l}
+    \texttt{lui \$1, 0x0074} \\
+    \texttt{ori \$8, \$1, 0xcbb1}
+  \end{array}
+}_{\text{CPU instructions}}
+\]
+
+\begin{itemize}
+    \item \textbf{Load upper immediate} (\texttt{lui}) sets the most significant 16 bits to the immediate and clears the lower 16:
+    \[ \texttt{\$1} = \texttt{0x00740000} \]
+    \item \textbf{Or immediate} (\texttt{ori}) performs a bitwise OR with the zero-extended immediate \texttt{0xcbb1}:
+    \[ \texttt{\$8} = \texttt{0x00740000} \mid \texttt{0x0000cbb1} = \texttt{0x0074cbb1} \]
+\end{itemize}
+
+\subsubsection{\textbf{I}-mmediate branching instructions}
+Essential for implementing loops. There are many branches on comparisons with zero: \texttt{bgez}, \texttt{bgtz},
+\texttt{blez}, \texttt{bltz}, etc.
+
 
 
 \end{document}
