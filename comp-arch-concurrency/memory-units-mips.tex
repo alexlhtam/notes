@@ -1,0 +1,362 @@
+\documentclass[a4paper, 11pt]{article}
+
+\usepackage[margin=3cm]{geometry} 
+\usepackage{amsthm, amsmath, amssymb}
+\usepackage{array}
+\usepackage{bussproofs}
+\usepackage{booktabs}
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
+\newtheorem{example}[definition]{Example}
+\newtheorem{theorem}[definition]{Theorem}
+\newtheorem{lemma}[definition]{Lemma}
+\newtheorem{prop}[definition]{Proposition}
+\newtheorem{corollary}[definition]{Corollary}
+
+% change spacing
+\let\olditemize\itemize
+\renewcommand{\itemize}{\olditemize\setlength{\itemsep}{0pt}\setlength{\parsep}{0pt}}
+\let\oldenumerate\enumerate
+\renewcommand{\enumerate}{\oldenumerate\setlength{\itemsep}{0pt}\setlength{\parsep}{0pt}}
+
+% hilbert proofs
+\newcounter{dline}
+\newenvironment{deduction}[1][\textit{no hypotheses}]
+    {\setcounter{dline}{0}%
+     \[\begin{array}{r|l@{\qquad}l}
+     & #1 \\ \cline{2-2}}
+    {\end{array}\]}
+\newcommand{\dl}[2]{\stepcounter{dline}\thedline & #1 & \text{#2} \\}
+
+% tables
+\newenvironment{comparison}[4][p{0.22\textwidth} p{0.36\textwidth} p{0.36\textwidth}]
+    {\setcounter{factrow}{0}%
+     \begin{center}
+     \begin{tabular}{#1}
+     \textsc{#2} & \textsc{#3} & \textsc{#4} \\[4pt]}
+    {\end{tabular}
+     \end{center}}
+
+
+\begin{document}
+\section{Memory Units and MIPS}
+
+\subsection{Memory Units}
+A binary digit (a bit) is a single $0/1$ digit. A byte (nowadays) is a unit of $8$ bytes, and a kilobyte (KB) is
+$2^{10}=1024$ bytes, a megabyte $2^{20}=1024$ KB, then GB, TB, PB, EB, and so on.
+
+\subsection{Working unit size -- Words}
+A word is a natural unit of data used by a given processor. In this course MIPS32 is used, but MIPS16 and MIPS64 do exist.
+This typically indicates the sizes of registers, memory addresses, instruction sizes, and floating point variable sizes.
+
+\subsection{Memory Organisation}
+We have an ``array'' of bytes, or words.
+\begin{center}
+\begin{tabular}{r|p{2.5cm}|}
+    Address & \multicolumn{1}{c}{} \\ \cline{2-2}
+    \ldots  & \\ \cline{2-2}
+    4       & \\ \cline{2-2}
+    3       & \\ \cline{2-2}
+    2       & \\ \cline{2-2}
+    1       & \\ \cline{2-2}
+    0       & \\ \cline{2-2}
+            & \multicolumn{1}{c}{$\longleftarrow$ 8 bits $\longrightarrow$}
+\end{tabular}
+\qquad\qquad
+\begin{tabular}{r|p{5cm}|}
+    Address & \multicolumn{1}{c}{} \\ \cline{2-2}
+    \ldots  & \\ \cline{2-2}
+    10      & \\ \cline{2-2}
+    C       & \\ \cline{2-2}
+    8       & \\ \cline{2-2}
+    4       & \\ \cline{2-2}
+    0       & \\ \cline{2-2}
+            & \multicolumn{1}{c}{$\longleftarrow$ \hfill 32 bits \hfill $\longrightarrow$}
+\end{tabular}
+\end{center}
+
+\subsection{Big and Little Endian}
+Consider the word \texttt{0xBABACAFE}. To store it in address 8, we have two options: Big Endian has most significant byte
+at the lowest memory address, and Little Endian the least significant. Also illustrated below is the 32-bit integer 9
+stored in memory address 4:
+
+\newcommand{\oc}[1]{\multicolumn{1}{c}{\makebox[0.8cm]{#1}}}
+\begin{center}
+\begin{tabular}{r|c|c|c|c|}
+    Offset  & \oc{0} & \oc{1} & \oc{2} & \oc{3} \\
+    Address & \oc{}  & \oc{}  & \oc{}  & \oc{}  \\ \cline{2-5}
+    \ldots  & & & & \\ \cline{2-5}
+    10      & & & & \\ \cline{2-5}
+    C       & & & & \\ \cline{2-5}
+    8       & BA & BA & CA & FE \\ \cline{2-5}
+    4       & \textbf{0} & \textbf{0} & \textbf{0} & \textbf{9} \\ \cline{2-5}
+    0       & & & & \\ \cline{2-5}
+    \multicolumn{5}{c}{} \\
+    \multicolumn{5}{c}{Big Endian}
+\end{tabular}
+\qquad\qquad
+\begin{tabular}{r|c|c|c|c|}
+    Offset  & \oc{0} & \oc{1} & \oc{2} & \oc{3} \\
+    Address & \oc{}  & \oc{}  & \oc{}  & \oc{}  \\ \cline{2-5}
+    \ldots  & & & & \\ \cline{2-5}
+    10      & & & & \\ \cline{2-5}
+    C       & & & & \\ \cline{2-5}
+    8       & FE & CA & BA & BA \\ \cline{2-5}
+    4       & \textbf{9} & \textbf{0} & \textbf{0} & \textbf{0} \\ \cline{2-5}
+    0       & & & & \\ \cline{2-5}
+    \multicolumn{5}{c}{} \\
+    \multicolumn{5}{c}{Little Endian}
+\end{tabular}
+\end{center}
+It turns out that it doesn't really matter which Endian is used, but most modern computers use Little Endian.
+
+\newpage
+
+\subsection{MIPS Registers}
+The MIPS32 CPU has 32 registers: $\$0, \dots, \$31$, each of size 32 bits. Different registers serve different purposes;
+for example, \$0 always contains the value 0. Unlike x86 and other complex instruction set architectures (ISAs), MIPS only 
+operates on registers. This simplifies the ISA, but increases the number of instructions. \\
+For example: \texttt{Mem[0x1001000] += Mem[0x1001004]} translates to:
+\begin{itemize}
+    \item Read \texttt{Mem[0x1001000]} into register.
+    \item Read \texttt{Mem[0x1001004]} into register.
+    \item Compute the sum of both registers.
+    \item Write the result back to \texttt{Mem[0x1001000]}.
+\end{itemize}
+Having simpler instructions means we can have fewer of them. With MIPS, we have the first 6 bits as the opcode, and the
+next 26 bits as the argument:
+\begin{center}
+\begin{tabular}{|p{1.2cm}|p{5.2cm}|}
+    \hline
+    \centering opcode & \centering\arraybackslash arguments \\
+    \hline
+    \multicolumn{1}{c}{\textbf{6 bits}} & \multicolumn{1}{c}{\textbf{26 bits}}
+\end{tabular}
+
+\vspace{1em}
+\begin{tabular}{l}
+    \texttt{0x3c011001} \\
+    \texttt{0b00111100000000010001000000000001} \\
+    $\texttt{0b}\underbrace{\texttt{001111}}_{\text{opcode}}\,\underbrace{\texttt{00000000010001000000000001}}_{\text{arguments}}$ \\[2ex]
+\end{tabular}
+\end{center}
+
+\subsection{Instruction Types}
+In MIPS32, both addresses and instructions are 32-bit long. For instructions, 6 out of the 32 bits are used for opcodes.
+Therefore, we need to be able to encode addresses to be able to jump locations or load array addresses into pointers, and
+set 32-bit values into registers. We have three instruction types: 
+\begin{enumerate}
+    \item \textbf{R}-ithmetic (between register) operations, such as \texttt{add \$8, \$1, \$2} and
+\texttt{sub \$12, \$6, \$3};
+    \item \textbf{I}-mmediate (including fixed numbers) operations, like \texttt{addi \$15, \$15, -1}
+and \texttt{beq \$10, \$14, 0x00000002};
+    \item \textbf{J}-ump operations including \texttt{j 0x004000050} and \texttt{jal 0x00400007c}
+\end{enumerate}
+The MIPS Reference Card is on the course Moodle website.
+
+\subsection{\textbf{R}-ithmetic Instructions}
+\begin{center}
+\begin{tabular}{|p{1.5cm}|p{1.25cm}|p{1.25cm}|p{1.25cm}|p{1.25cm}|p{1.5cm}|}
+    \hline
+    \hfil opcode & \hfil rs & \hfil rt & \hfil rd & \hfil shamt & \hfil funct \\
+    \hline
+    \multicolumn{1}{c}{6 bits} & \multicolumn{1}{c}{5 bits} &
+    \multicolumn{1}{c}{5 bits} & \multicolumn{1}{c}{5 bits} &
+    \multicolumn{1}{c}{5 bits} & \multicolumn{1}{c}{6 bits}
+\end{tabular}
+
+\vspace{1ex}
+\texttt{R[rd] = func(R[rs], R[rt])}
+
+\vspace{2ex}
+\texttt{add \$8, \$1, \$2} \qquad \texttt{0x00224020}
+
+\vspace{1ex}
+$\underbrace{\texttt{000000}}_{\mbox{opcode}}\,
+ \underbrace{\texttt{00001}}_{\mbox{rs = \$1}}\,
+ \underbrace{\texttt{00010}}_{\mbox{rt = \$2}}\,
+ \underbrace{\texttt{01000}}_{\mbox{rd = \$8}}\,
+ \underbrace{\texttt{00000}}_{\mbox{shamt}}\,
+ \underbrace{\texttt{100000}}_{\mbox{funct = 20}_{\rm hex}}$
+\end{center}
+
+\begin{center}
+\texttt{sub \$5, \$7, \$6} \qquad \texttt{0x00e62822} \qquad R[rd] = R[rs] - R[rt]
+
+\vspace{1ex}
+$\underbrace{\texttt{000000}}_{\mbox{opcode}}\,
+ \underbrace{\texttt{00111}}_{\mbox{rs = \$7}}\,
+ \underbrace{\texttt{00110}}_{\mbox{rt = \$6}}\,
+ \underbrace{\texttt{00101}}_{\mbox{rd = \$5}}\,
+ \underbrace{\texttt{00000}}_{\mbox{shamt}}\,
+ \underbrace{\texttt{100010}}_{\mbox{funct = 22}_{\rm hex}}$
+
+\vspace{4ex}
+\texttt{sltu \$3, \$22, \$11} \qquad \texttt{0x02cb182b} \qquad R[rd] = (R[rs] $<$ R[rt]) ? 1 : 0
+
+\vspace{1ex}
+$\underbrace{\texttt{000000}}_{\mbox{opcode}}\,
+ \underbrace{\texttt{10110}}_{\mbox{rs = \$22}}\,
+ \underbrace{\texttt{01011}}_{\mbox{rt = \$11}}\,
+ \underbrace{\texttt{00011}}_{\mbox{rd = \$3}}\,
+ \underbrace{\texttt{00000}}_{\mbox{shamt}}\,
+ \underbrace{\texttt{101011}}_{\mbox{funct = 2b}_{\rm hex}}$
+\end{center}
+
+\subsubsection{Shift Instructions}
+\begin{center}
+\texttt{srl \$11, \$7, 4} \qquad \texttt{0x00075842} \qquad R[rd] = R[rt] $\gg$ shamt \quad (rs is 0)
+
+\vspace{1ex}
+$\underbrace{\texttt{000000}}_{\mbox{opcode}}\,
+ \underbrace{\texttt{00000}}_{\mbox{rs = 0}}\,
+ \underbrace{\texttt{00111}}_{\mbox{rt = \$7}}\,
+ \underbrace{\texttt{01011}}_{\mbox{rd = \$11}}\,
+ \underbrace{\texttt{00100}}_{\mbox{shamt = 4}}\,
+ \underbrace{\texttt{000010}}_{\mbox{funct = 02}_{\rm hex}}$
+\end{center}
+
+\[
+\begin{array}{rcl@{\qquad}rcl}
+100_{10} \ll 4 & = & 100 \cdot 2^4 = 1600
+  & 1100100_2 \ll 4 & = & 1100100\underline{0000}_2 \\[1ex]
+100_{10} \gg 4 & = & \left\lfloor \frac{100}{2^4} \right\rfloor = 6
+  & 1100100_2 \gg 4 & = & 110_2
+\end{array}
+\]
+
+\noindent $-100_{10} \gg 4 = {?}$ \quad It depends on the kind of shift:
+\[
+\begin{array}{l@{\quad}l}
+\mbox{Logical:} & \texttt{0xffffff9c >>> 4} = \texttt{0x0ffffff9} = 268435449_{10} \\[1ex]
+\mbox{Arithmetic:} & \texttt{0xffffff9c >> 4} = \texttt{0xfffffff9}
+  = \left\lfloor \frac{-100}{2^4} \right\rfloor = -7
+\end{array}
+\]
+
+\subsubsection{Pseudo Instructions}
+There also exists \textit{pseudo} instructions that are not real MIPS32 instructions (i.e. they do not have opcodes and
+aren't recognised by the CPU), but they can be translated into real instructions by the assembler. For example, \texttt{
+move \$8, \$9} can be translated into \texttt{add \$8, \$9, \$0}.
+
+\subsubsection{High-level Commands}
+Going one way, we have the \textbf{disassembly} of machine code to assembly code and \textbf{reverse engineering} of
+assembly code to high level code like \texttt{x = a - b + c - d;}. In contrast, going from a high level language to 
+assembly is \textbf{not unique}. There are multiple heuristics for optimisation, but going from assembly to machine code
+\textbf{is} unique.
+
+\subsubsection{Example of \textbf{R}-Type Instructions}
+\begin{center}
+\begin{tabular}{|llll|}
+    \hline
+    Instruction & op & funct (hex) & Description \\
+    \hline
+    \texttt{add}  & 0 & 0x20 & Addition, with signed overflow \\
+    \texttt{sub}  & 0 & 0x22 & Subtraction, with signed overflow \\
+    \texttt{and}  & 0 & 0x24 & Logical And \\
+    \texttt{or}   & 0 & 0x25 & Logical Or \\
+    \texttt{xor}  & 0 & 0x26 & Logical Xor \\
+    \texttt{nor}  & 0 & 0x27 & Logical Nor \\
+    \texttt{slt}  & 0 & 0x2A & Set on less than \\
+    \texttt{sltu} & 0 & 0x2B & Set on less than unsigned \\
+    \texttt{srl}  & 0 & 0x02 & Shift Right Logical \\
+    \texttt{sra}  & 0 & 0x03 & Shift Right Arith. \\
+    \texttt{sll}  & 0 & 0x00 & Shift Left Logical \\
+    \hline
+\end{tabular}
+\end{center}
+
+\newpage
+\subsection{\textbf{I}-mmediate Instructions}
+
+Memory addresses are 32-bit long, as are the registers. A single way to compute a memory address:
+\[
+\text{Base (register value)} + \text{Displacement (Imm value)}
+\]
+\[
+\underbrace{\texttt{0x20}}_{\text{Displacement}}
+(\underbrace{\texttt{\$8}}_{\text{Base}})
+\]
+If \texttt{\$8 = 0x10010000}, then \texttt{0x20(\$8)} is the address \texttt{0x10010020}. Working with integer arrays:
+\begin{itemize}
+    \item \texttt{A[8] = y;}
+    \item Say \texttt{\$8} stores the address of \texttt{A} and \texttt{\$9} stores $y$
+\end{itemize}
+\textbf{Store Word} (\texttt{sw}, I-type, opcode \texttt{0x2b}):
+\quad $M[R[rs] + \mathrm{SignExtImm}] = R[rt]$
+
+\[
+\texttt{sw \$9, 0x20(\$8)}
+\;\Longrightarrow\;
+\underbrace{\texttt{101011}}_{\text{op}}\;
+\underbrace{\texttt{01000}}_{rs = \$8}\;
+\underbrace{\texttt{01001}}_{rt = \$9}\;
+\underbrace{\texttt{0000000000100000}}_{\text{imm} = \texttt{0x20}}
+= \texttt{0xad090020}
+\] \\
+\textbf{Load Word} (\texttt{lw}, I-type, opcode \texttt{0x23}):
+\quad $R[rt] = M[R[rs] + \mathrm{SignExtImm}]$
+
+Example: \texttt{z = A[10];} loads \texttt{A[10]} into \texttt{\$10}.
+
+\[
+\texttt{lw \$10, 0x28(\$8)}
+\;\Longrightarrow\;
+\underbrace{\texttt{100011}}_{\text{op}}\;
+\underbrace{\texttt{01000}}_{rs = \$8}\;
+\underbrace{\texttt{01010}}_{rt = \$10}\;
+\underbrace{\texttt{0000000000101000}}_{\text{imm} = \texttt{0x28}}
+= \texttt{0x8d0a0028}
+\]
+
+\textit{Note:} the address $R[rs] + \mathrm{SignExtImm}$ must be word-aligned. \\
+
+Immediate memory instructions also works with byte and half word granularities, and supports zero-extensions.
+\begin{itemize}
+    \item Load/store bytes (\texttt{lb} / \texttt{sb})
+    \item Load/store half-word (\texttt{lh} / \texttt{sh}) (half-word aligned)
+    \item Are sign-extended
+\end{itemize}
+
+\subsubsection{\textbf{I}-mmediate value assignment}
+In Java/C, we may want to do a variable assignment such as \texttt{int x = 7654321;}. How would that be translated to
+MIPS?
+
+\begin{center}
+\begin{tabular}{|c|c|c|c|}
+    \hline
+    \makebox[2cm]{opcode} & \makebox[1.6cm]{rs} & \makebox[1.6cm]{rt} & \makebox[5cm]{immediate} \\
+    \hline
+    \multicolumn{1}{c}{6 bits} & \multicolumn{1}{c}{5 bits} & \multicolumn{1}{c}{5 bits} & \multicolumn{1}{c}{16 bits} \\
+\end{tabular}
+\end{center}
+
+
+The pseudo-instruction \texttt{li \$8, 7654321} is expanded by the assembler into two CPU instructions, since $7654321_{10} = \texttt{0x74cbb1}$ does not fit in a 16-bit immediate:
+
+\[
+\underbrace{\texttt{li \$8, 7654321}}_{\text{pseudo-instruction}}
+\;\Longrightarrow\;
+\underbrace{
+  \begin{array}{l}
+    \texttt{lui \$1, 0x0074} \\
+    \texttt{ori \$8, \$1, 0xcbb1}
+  \end{array}
+}_{\text{CPU instructions}}
+\]
+
+\begin{itemize}
+    \item \textbf{Load upper immediate} (\texttt{lui}) sets the most significant 16 bits to the immediate and clears the lower 16:
+    \[ \texttt{\$1} = \texttt{0x00740000} \]
+    \item \textbf{Or immediate} (\texttt{ori}) performs a bitwise OR with the zero-extended immediate \texttt{0xcbb1}:
+    \[ \texttt{\$8} = \texttt{0x00740000} \mid \texttt{0x0000cbb1} = \texttt{0x0074cbb1} \]
+\end{itemize}
+
+\subsubsection{\textbf{I}-mmediate branching instructions}
+Essential for implementing loops. There are many branches on comparisons with zero: \texttt{bgez}, \texttt{bgtz},
+\texttt{blez}, \texttt{bltz}, etc.
+
+
+
+\end{document}

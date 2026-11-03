@@ -1,0 +1,104 @@
+\documentclass[a4paper, 11pt]{article}
+
+\usepackage[margin=3cm]{geometry} 
+\usepackage{amsthm, amsmath, amssymb}
+\usepackage{array}
+\usepackage{bussproofs}
+\usepackage{booktabs}
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
+\newtheorem{example}[definition]{Example}
+\newtheorem{theorem}[definition]{Theorem}
+\newtheorem{lemma}[definition]{Lemma}
+\newtheorem{prop}[definition]{Proposition}
+\newtheorem{corollary}[definition]{Corollary}
+
+% change spacing
+\let\olditemize\itemize
+\renewcommand{\itemize}{\olditemize\setlength{\itemsep}{0pt}\setlength{\parsep}{0pt}}
+\let\oldenumerate\enumerate
+\renewcommand{\enumerate}{\oldenumerate\setlength{\itemsep}{0pt}\setlength{\parsep}{0pt}}
+
+% hilbert proofs
+\newcounter{dline}
+\newenvironment{deduction}[1][\textit{no hypotheses}]
+    {\setcounter{dline}{0}%
+     \[\begin{array}{r|l@{\qquad}l}
+     & #1 \\ \cline{2-2}}
+    {\end{array}\]}
+\newcommand{\dl}[2]{\stepcounter{dline}\thedline & #1 & \text{#2} \\}
+
+% tables
+\newenvironment{comparison}[4][p{0.22\textwidth} p{0.36\textwidth} p{0.36\textwidth}]
+    {\setcounter{factrow}{0}%
+     \begin{center}
+     \begin{tabular}{#1}
+     \textsc{#2} & \textsc{#3} & \textsc{#4} \\[4pt]}
+    {\end{tabular}
+     \end{center}}
+
+
+\begin{document}
+
+
+\section{Number Systems}
+
+\subsection{Notation}
+When programming, we cannot use subscripts like ${17}_8$ to denote the base.
+\begin{itemize}
+    \item Binary denoted as \texttt{0b}, e.g. \texttt{0b110000011111}
+    \item Octal (base 8) denoted as \texttt{0}, e.g. \texttt{06037}
+    \item Decimal is without prefix, e..g \texttt{3103}
+    \item Hex denoted as \texttt{0x}, e.g. \texttt{0xC1F}
+\end{itemize}
+
+\subsection{Representing negative numbers}
+Two's complement: ``The two's complement of an N-bit number is defined as its complement with respect to $2^N$''
+\[
+\overset{\substack{2^3 \\ =}}{1000_2} - \overset{\substack{3 \\ =}}{011_2}
+\;=\; 101 \quad (\text{represents } -3)
+\]
+\[
+x = (x_{N-1}\, x_{N-2} \ldots x_0)_2
+  = \left( -x_{N-1}\, 2^{N-1} + \sum_{i=0}^{N-2} x_i\, 2^i \right)
+\]
+\begin{center}
+\begin{tabular}{rc}
+    \toprule
+    \textbf{Decimal} & \textbf{Two's comp.} \\
+    \midrule
+    $-4$ & 100 \\
+    $-3$ & 101 \\
+    $-2$ & 110 \\
+    $-1$ & 111 \\
+    $0$  & 000 \\
+    $1$  & 001 \\
+    $2$  & 010 \\
+    $3$  & 011 \\
+    \bottomrule
+\end{tabular}
+\end{center}
+Why 2's-complement? Single zero reprsentation simplifies equality checking, and arithmetic is overall easier.
+
+\subsection{Integers}
+\begin{itemize}
+    \item \textit{Signed} $n$-bit integers can represent $-2^{n-1}, \dots, 2^{n-1} - 1$
+    \item \textit{Unsigned} $n$-bit integer can represent $0, \dots, 2^{n-1}$
+\end{itemize}
+
+\subsection{Checking overflows in $2$'s complement}
+\begin{itemize}
+    \item (pos) $+$ (neg) cannot overflow
+    \item (pos) $-$ (pos) cannot overflow 
+    \item (neg) $+$ (neg) should be negative. Carry bit turns it positive.
+    \item (pos) $+$ (pos) should be positive. Carry bit turns it negative.
+\end{itemize}
+
+\subsection{Extending numbers}
+Consider the 8-bit number $01001011_2$. To extend it to 16 bits, we pad the front with 0s: $0000000001001011_2$.
+Now the number $11001011_2$: If unsigned, we pad with 0s as prior. If signed, we pad with 1s instead: $1111111111001011_2$.
+
+
+
+\end{document}
