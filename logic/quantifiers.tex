@@ -1,0 +1,57 @@
+\documentclass[a4paper, 11pt]{article}
+
+\usepackage[margin=3cm]{geometry} 
+\usepackage{amsthm, amsmath, amssymb}
+\usepackage{array}
+\usepackage{bussproofs}
+\usepackage{booktabs}
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
+\newtheorem{example}[definition]{Example}
+\newtheorem{theorem}[definition]{Theorem}
+\newtheorem{lemma}[definition]{Lemma}
+\newtheorem{prop}[definition]{Proposition}
+\newtheorem{corollary}[definition]{Corollary}
+
+% change spacing
+\let\olditemize\itemize
+\renewcommand{\itemize}{\olditemize\setlength{\itemsep}{0pt}\setlength{\parsep}{0pt}}
+\let\oldenumerate\enumerate
+\renewcommand{\enumerate}{\oldenumerate\setlength{\itemsep}{0pt}\setlength{\parsep}{0pt}}
+
+% hilbert proofs
+\newcounter{dline}
+\newenvironment{deduction}[1][\textit{no hypotheses}]
+    {\setcounter{dline}{0}%
+     \[\begin{array}{r|l@{\qquad}l}
+     & #1 \\ \cline{2-2}}
+    {\end{array}\]}
+\newcommand{\dl}[2]{\stepcounter{dline}\thedline & #1 & \text{#2} \\}
+
+\begin{document}
+\section{Quantifiers}
+
+\subsection{Predicates \& Quantifiers}
+
+\begin{definition}[first-order language]
+    The symbols are of two kinds:
+    \begin{enumerate}
+        \item The logical symbols, the same in every language: $\to, \land, \lor, \bot$; the quantifiers $\forall,
+        \exists$; variables $x, y, z, \dots$
+        \item The signature, which changes from language to language: constant symbols $c, d, \dots$; function symbols
+        $f, g, \dots$; predicate symbols $P, Q, \dots$, each with an arity.
+    \end{enumerate}
+\end{definition}
+
+\begin{definition}[terms] \leavevmode
+    \begin{enumerate}
+        \item Every variable is a term;
+        \item Every constant symbol is a term;
+        \item If $f$ has arity $n$ and $t_1, \dots, t_n$ are terms, $f(t_1, \dots, t_n)$ is a term;
+        \item Nothing else is a term.
+    \end{enumerate}
+\end{definition}
+
+
+\end{document}
