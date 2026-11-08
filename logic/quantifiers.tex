@@ -5,6 +5,15 @@
 \usepackage{array}
 \usepackage{bussproofs}
 \usepackage{booktabs}
+\usepackage{tikz}
+
+% downward triangle for a derivation; optional note to its right
+\newcommand{\deriv}[2][\mathcal{D}]{%
+  \begin{tikzpicture}[baseline=(c.base)]
+    \draw[fill=brown!20] (-0.5,0.4) -- (0.5,0.4) -- (0,-0.4) -- cycle;
+    \node (c) at (0,0.15) {$#1$};
+    \node[overlay, right, align=left, font=\tiny\itshape] at (0.45,0.3) {#2};
+  \end{tikzpicture}}
 
 \theoremstyle{definition}
 \newtheorem{definition}{Definition}[section]
@@ -52,6 +61,164 @@
         \item Nothing else is a term.
     \end{enumerate}
 \end{definition}
+
+\begin{definition}[formulas] \leavevmode
+    \begin{enumerate}
+        \item $\bot$ is a formula;
+        \item If $P$ has arity $n$ and $t_1, \dots, t_n$ are terms, $P(t_1, \dots, t_n)$ is a formula; 
+        \item If $A, B$ are formulas, so are $(A \to B), (A \land B), (A \lor B)$; 
+        \item If $A$ is a formula and $x$ a variable, $\forall x \, A$ and $\exists x \, A$ are formulas;
+        \item Nothing else is a formula.
+    \end{enumerate}
+\end{definition}
+
+\subsubsection{Three Conventions}
+    \begin{itemize}
+        \item $\neg A$ abbreviates $A \to \bot$.
+        \item Familiar symbols go between their arguments: $x+1 < y$ is $<(+(x, 1), y)$, a term inside a formula.
+        \item $\neg$ and the quantifiers bind tightest, so $\forall x \, A \to B$ is $(\forall x \, A) \to B$. A wider
+        scope is bracketed: $\forall x \, (A \to B)$.
+    \end{itemize}
+
+\subsubsection{The Open Rule}
+\[\exists d  \, \text{Reg}(d, k) \land \text{Cap}(\text{owner}(k))\]
+``some driver has registered kind $k$, and its owner has a capability for it''. owner($k$) names a driver without saying
+which. That is what a function symbol is for.
+
+\subsubsection{Order Matters}
+\begin{align}
+    &\forall k \exists d \, \text{Reg}(d, k) \\
+    &\exists d \forall k \, \text{Reg}(d, k)
+\end{align}
+(1): ``Every kind has some driver that registered it, perhaps a different one each time.''
+(2): ``There is one driver that registered every kind.''
+
+\subsubsection{Which connective goes under the qunaitifer}
+\begin{itemize}
+    \item Under \textit{for all}, a condition goes on the left of an arrow.
+    \item Under \textit{there is}, the description is joined with $\land$.
+\end{itemize}
+
+\begin{definition}[free variables]
+    In $\forall x \, A$ and $\exists x \, A$, $A$ is the scope. An occurrence of $x$ is bound if it lies in the scope of
+    a $\forall x$ or $\exists x$, and free otherwise.
+    \[
+        \mathrm{FV}(A) := 
+        \begin{cases}
+            \emptyset & \text{if $A$ is $\bot$,} \\
+            \text{the variables in } t_1, \dots, t_n & \text{if $A$ is $P(t_1, \dots, t_n)$,} \\
+            \mathrm{FV}(B) \cup \mathrm{FV}(C) & \text{if $A$ is $B \circ C$ ($\circ$ any of $\to$, $\land$, $\lor$),} \\
+            \mathrm{FV}(B) \setminus \{x\} & \text{if $A$ is $Qx\, B$ ($Q$ either quantifier).}
+        \end{cases}
+    \]
+\end{definition}
+
+\begin{definition}[substitution]
+    $A[t/x]$ puts the term $t$ in for the \textit{free} occurrences of $x$ in $A$ and nothing else.
+    \begin{enumerate}
+        \item For a term $s$, $s[t/x]$ is s with every $x$ replaced by $t$.
+        \item $t$ is substitutable for $x$ in $A$ if no free $x$ in $A$ lies in the scope of a quantifier on a variable
+        of $t$.
+    \end{enumerate}
+    If $t$ is substitutable for $x$ in $A$:
+    \[
+    A[t/x] :=
+    \begin{cases}
+        \bot & \text{if } A \text{ is } \bot, \\
+        P(t_1[t/x], \dots, t_n[t/x]) & \text{if } A \text{ is } P(t_1, \dots, t_n), \\
+        B[t/x] \circ C[t/x] & \text{if } A \text{ is } B \circ C, \\
+        Qx \, B & \text{if } A \text{ is } Qx \, B, \\ 
+        Qy \, B[t/x] & \text{if } A \text{ is } Qx \, B \text{ with } y \neq x.
+    \end{cases} 
+    \]
+\end{definition}
+
+\subsection{NJ with Quantifiers}
+\begin{definition}[derivations, with quantifiers]
+    The nine propositional clauses as before, and four more: throughout, $t$ is a term, and $y$ a variable.
+    \begin{enumerate}
+        \item $(\forall E)$ if $\mathcal{D}$ concludes $\forall x \, A$ and $t$ is substitutable for $x$ in $A$, then:
+        \begin{prooftree}
+            \AxiomC{\deriv{}}
+            \noLine
+            \UnaryInfC{$\forall x\, A$}
+            \RightLabel{\scriptsize $\forall$E}
+            \UnaryInfC{$A[t/x]$}
+        \end{prooftree}
+
+        \item $(\forall I)$ if $\mathcal{D}$ concludes $A[y/x]$, where $y$ is substitutable for $x$ in $A$, and $y$
+        \textbf{is free neither in} $\forall x \, A$ \textbf{nor in any formula of} $\mathsf{OH}(\mathcal{D})$, then: \begin{prooftree}
+            \AxiomC{\deriv{no open leaf\\has $y$ free}}
+            \noLine
+            \UnaryInfC{$A[y/x]$}
+            \RightLabel{\scriptsize $\forall$I}
+            \UnaryInfC{$\forall x\, A$}
+        \end{prooftree} is a derivation, with $\mathsf{OH} = \mathsf{OH}(\mathcal{D})$
+        \newpage
+        \item $(\exists I)$ If $\mathcal{D}$ concludes $A[t/x]$ and $t$ is substitutable for $x$ in $A$, then:
+        \begin{prooftree}
+            \AxiomC{\deriv{}}
+            \noLine
+            \UnaryInfC{$A[y/x]$}
+            \RightLabel{\scriptsize $\exists$I}
+            \UnaryInfC{$\exists x \, A$}
+        \end{prooftree} is a derivation.
+
+        \item $(\exists E)$ If $\mathcal{D}_0$ concludes $\exists x \, A$ and $\mathcal{D}_1$ concludes $C$, with $y$
+        substitutable for $x$ in $A$ and \textbf{free in none of} $C$, $\exists x \, A$, \textbf{and} $\mathsf{OH}( 
+        \mathcal{D}_1) \setminus \{A[y/x]\}$, then
+        \begin{prooftree}
+            \AxiomC{\deriv[\mathcal{D}_0]{}}
+            \noLine
+            \UnaryInfC{$\exists x\, A$}
+            \AxiomC{$[A[y/x]]$}
+            \noLine
+            \UnaryInfC{\deriv[\mathcal{D}_1]{no other open\\leaf has $y$ free}}
+            \noLine
+            \UnaryInfC{$C$}
+            \RightLabel{\scriptsize $\exists$E}
+            \BinaryInfC{$C$}
+        \end{prooftree} is a derivation.
+
+        \item Nothing else is a derivation.
+    \end{enumerate}
+\end{definition}
+
+\begin{definition}[open hypotheses; derivability]
+    By cases on the last rule, $\mathcal{D}'$, the one sub-derivation of a one-premise rule, $\mathcal{D}_0, \mathcal{D}
+    _1$ the two of $(\exists E)$:
+    \[
+    \mathsf{OH}(\mathcal{D}) :=
+    \begin{cases}
+    \text{as in Chapter 3} &\text{a leaf or an old rule}, \\
+    \mathsf{OH}(\mathcal{D}') &(\forall E), (\forall I), (\exists I), \\
+    \mathsf{OH}(\mathcal{D}_0) \cup (\mathsf{OH}(\mathcal{D}_1) \setminus \{A[y/x]\}) &(\exists E), \text{ discharging }
+    A[y/x]
+    \end{cases}
+    \]
+    Derivable in NJ: $\Gamma \vdash_{\text{NJ}} A$ when there is a derivation $\mathcal{D}$ whose conclusion is $A$ and
+    whose open hypotheses are among $\Gamma: \mathsf{OH}(\mathcal{D}) \subseteq \Gamma$.
+\end{definition}
+
+\begin{theorem}[consistency]
+    No atomic formula is derivable from no hypotheses: $\not \vdash_{\text{NJ}} \bot$, and $\not \vdash_{\text{NJ}} P(
+    t_1, \dots, t_n)$.
+\end{theorem}
+
+
+\begin{corollary}[Disjunction \& Existence property] \leavevmode \\
+    \[\text{If }\vdash_{\text{NJ}} A \lor B, \text{ then }\vdash_{\text{NJ}} A \text{ or }\vdash_{\text{NJ}} B; \]
+    \[\text{If } \vdash_{\text{NJ}} \exists x \, A, \text{ then there is a term } t \text{ with } \vdash_\text{NJ} A[t/x].\]
+\end{corollary}
+
+
+
+
+
+
+
+
+
 
 
 \end{document}
