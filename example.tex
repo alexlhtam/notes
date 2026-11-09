@@ -7,12 +7,29 @@
 \usepackage{booktabs}
 
 \theoremstyle{definition}
-\newtheorem{definition}{Definition}[section]
-\newtheorem{example}[definition]{Example}
-\newtheorem{theorem}[definition]{Theorem}
-\newtheorem{lemma}[definition]{Lemma}
-\newtheorem{prop}[definition]{Proposition}
-\newtheorem{corollary}[definition]{Corollary}
+
+% Manually numbered theorem-like environments, so numbers can match the
+% lecturer's master documents. Usage:
+%   \begin{definition}{2.3}            ...  \end{definition}  -> Definition 2.3.
+%   \begin{theorem}{4.1}[Compactness]  ...  \end{theorem}     -> Theorem 4.1 (Compactness).
+% \label works as usual, so \ref{...} prints the number you typed.
+\newcommand{\manualthmname}{}
+\newcommand{\manualthmnum}{}
+\newtheorem{manualthm}{\manualthmname}
+\renewcommand{\themanualthm}{\manualthmnum}
+\newcommand{\newmanualtheorem}[2]{%
+  \NewDocumentEnvironment{#1}{m o}
+    {\renewcommand{\manualthmname}{#2}%
+     \renewcommand{\manualthmnum}{##1}%
+     \IfValueTF{##2}{\begin{manualthm}[##2]}{\begin{manualthm}}}
+    {\end{manualthm}}%
+}
+\newmanualtheorem{definition}{Definition}
+\newmanualtheorem{example}{Example}
+\newmanualtheorem{theorem}{Theorem}
+\newmanualtheorem{lemma}{Lemma}
+\newmanualtheorem{prop}{Proposition}
+\newmanualtheorem{corollary}{Corollary}
 
 % change spacing
 \let\olditemize\itemize
@@ -31,5 +48,17 @@
 
 \begin{document}
 \section{Hello}
+
+\begin{definition}{2.3}[Well-formed formula]\label{def:wff}
+A test definition.
+\end{definition}
+
+\begin{example}{2.7}
+An example without a title, citing Definition~\ref{def:wff}.
+\end{example}
+
+\begin{corollary}{3.12}
+A corollary.
+\end{corollary}
 
 \end{document}
