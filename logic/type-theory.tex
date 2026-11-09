@@ -1,14 +1,16 @@
 \documentclass[a4paper, 11pt]{article}
 
-\usepackage[margin=3cm]{geometry} 
-\usepackage{amsthm, amsmath, amssymb}
+\usepackage[margin=3cm]{geometry}
+\usepackage{amsthm, amsmath, amssymb, mathtools}
 \usepackage{array}
 \usepackage{bussproofs}
 \usepackage{booktabs}
 \usepackage{tikz}
+\usetikzlibrary{decorations.pathmorphing, arrows.meta}
+\usepackage{mathtools}
 
 \theoremstyle{definition}
- 
+
 % Manually numbered theorem-like environments, so numbers can match the
 % lecturer's master documents. Usage:
 %   \begin{definition}{2.3}            ...  \end{definition}  -> Definition 2.3.
@@ -35,13 +37,28 @@
 \newmanualtheorem{lemma}{Lemma}
 \newmanualtheorem{prop}{Proposition}
 \newmanualtheorem{corollary}{Corollary}
- 
+
+% Manually numbered headings, so numbers can match the lecturer's master documents. Usage:
+%   \msection{1}{Combinator Calculus}
+%   \msubsection{1.1}{Combinator Algebra}
+% \label works right after the heading, and \ref prints the number you typed.
+\newcommand{\msection}[2]{%
+  \renewcommand{\thesection}{#1}%
+  \refstepcounter{section}%
+  \section*{#1\quad #2}%
+  \addcontentsline{toc}{section}{\protect\numberline{#1}#2}}
+\newcommand{\msubsection}[2]{%
+  \renewcommand{\thesubsection}{#1}%
+  \refstepcounter{subsection}%
+  \subsection*{#1\quad #2}%
+  \addcontentsline{toc}{subsection}{\protect\numberline{#1}#2}}
+
 % change spacing
 \let\olditemize\itemize
 \renewcommand{\itemize}{\olditemize\setlength{\itemsep}{0pt}\setlength{\parsep}{0pt}}
 \let\oldenumerate\enumerate
 \renewcommand{\enumerate}{\oldenumerate\setlength{\itemsep}{0pt}\setlength{\parsep}{0pt}}
- 
+
 % hilbert proofs
 \newcounter{dline}
 \newenvironment{deduction}[1][\textit{no hypotheses}]
@@ -55,12 +72,11 @@
 \newcommand{\cK}{\mathsf{K}}
 \newcommand{\cS}{\mathsf{S}}
 
-
-
 \begin{document}
-\section{Combinator Calculus}
 
-\subsection{Combinator Algebra}
+\msection{1}{Combinator Calculus}
+
+\msubsection{1.1}{Combinator Algebra}
 
 \begin{definition}{1.1}[terms, and combinators]
   Fix two \textit{constants}, $\cK$ and $\cS$, and a stock of \textit{variables} $x, y, z, f, g, \dots$. The
@@ -105,7 +121,7 @@
     \item Rule (app\textsubscript{1}) says that if $P \leadsto P'$ then $P \, Q \leadsto P' \, Q$: a step in the
     function is a step of the application.
     \begin{prooftree}
-    \AxiomC{$P \leadsto P'$}
+      \AxiomC{$P \leadsto P'$}
       \RightLabel{\scriptsize $\text{app}_1$}
       \UnaryInfC{$(P \, Q) \;\leadsto\; (P' \, Q)$}
     \end{prooftree}
@@ -121,12 +137,12 @@
 
 \begin{example}{1.4}[the identity] Here is the run of \textsf{I} on an argument:
   \[
-  \begin{array}{r@{\;}l@{\qquad}l}
-    \cS \, \cK \, \cK \, x & \leadsto \cK \, x \, (\cK \, x) & \text{the $\cS$
-  step, with $P = Q = \cK$ and $R = x$} \\
-                           & \leadsto x                      & \text{the $\cK$
-  step: keep $x$, drop $\cK \, x$.}
-  \end{array}
+    \begin{array}{r@{\;}l@{\qquad}l}
+      \cS \, \cK \, \cK \, x & \leadsto \cK \, x \, (\cK \, x)
+        & \text{the $\cS$ step, with $P = Q = \cK$ and $R = x$} \\
+                             & \leadsto x
+        & \text{the $\cK$ step: keep $x$, drop $\cK \, x$.}
+    \end{array}
   \]
   The function that returns its argument unchanged isn't one of the two constants, but the language has it all the same.
   Whatever $x$ is, $\mathsf{I} \, x \leadsto^* x$.
@@ -134,4 +150,128 @@
 
 Terms built from constants by application, together with rules for rewriting them, make a \textit{combinatory algebra},
 and $\cK$ and $\cS$ are its basic combinators.
+
+\msubsection{1.2}{Confluence}
+The rules (app\textsubscript{1}) and (app\textsubscript{2}) let a step happen anywhere inside a term, so a term can
+often step in more than one way. A \textbf{redex}, short for \textit{reducible expression}, is a term with the shape of
+the left of $(\cK)$ or $(\cS)$:
+\[\cK \, P \, Q \qquad \qquad \cS \, P \, Q \, R\]
+What the rule puts in its place is the \textbf{reduct}. A step rewrites exactly one redex.
+
+\begin{definition}{1.6}[Church--Rosser; on loan]
+If $M \leadsto^* N_1$ and $M \leadsto^* N_2$, then there is a term $P$ such that $N_1 \leadsto^* P$ and $N_2 \leadsto^*
+P$. It's usually remembered as a picture. The two runs at the top are given; the theorem promises the two dashed runs at
+the bottom.
+\begin{center}
+  \begin{tikzpicture}[
+      node distance = 1.6cm,
+      red/.style = {-{Stealth[length=1.8mm]}, decorate,
+                    decoration={snake, amplitude=.35mm, segment length=2.2mm,
+                                post length=1.2mm}},
+      exists/.style = {-{Stealth[length=1.8mm]}, dashed}
+    ]
+    \node (M)  at (0,0)       {$M$};
+    \node (N1) at (-1.6,-1.6) {$N_1$};
+    \node (N2) at (1.6,-1.6)  {$N_2$};
+    \node (P)  at (0,-3.2)    {$P$};
+
+    \draw[red]    (M)  -- node[above left]  {\scriptsize $*$} (N1);
+    \draw[red]    (M)  -- node[above right] {\scriptsize $*$} (N2);
+    \draw[exists] (N1) -- node[below left]  {\scriptsize $*$} (P);
+    \draw[exists] (N2) -- node[below right] {\scriptsize $*$} (P);
+  \end{tikzpicture}
+\end{center}
+This property is called \textit{confluence}. Some terms can step in more than one way; others can't step at all. A term
+with no redex is in \textit{normal form}. Machines waiting for inputs, such as $\cK \, x$ and $\cS \, x \, y$, and
+$\cK, \cS$ and variables on their own, are all in normal form.
+\end{definition}
+
+\msubsection{1.3}{Evaluation Strategies}
+An implementation of the combinator calculus has to decide which redex to rewrite when a term has more than one. The
+choice can't change the result, but it can change how much work it takes. Two strategies matter:
+\begin{enumerate}
+  \item \textit{Strict, or eager}. Rewrite the \textbf{innermost} redex first, one with no redex inside it, and work
+  outwards. In programming terms: run the arguments, before the call.
+  \item \textit{Lazy}. Rewrite the \textbf{outermost} redex first, one that sits inside no other, work inwards. In
+  programming terms, run an argument only when the function needs it.
+\end{enumerate}
+The default is a bet on which behaviour we want more often:
+\begin{enumerate}
+  \item \textit{Predictable cost favours strict}. The work for an argument is paid at the call, so we can read the cost
+  off the line. A lazy sum of a long list can pile up a million unrun additions.
+
+  \item \textit{Effects favour strict}. Printing, reading, raising an error happen in the order written. Lazily, an
+  effect happens when its result is demanded.
+
+  \item \textit{Modularity favours lazy}. One part of a program describes an enormous list; another takes what it needs.
+  Python's generators borrow the idea.
+\end{enumerate}
+Everything in this section assumes that the run ends, and confluence says that two runs of a term can be brought back
+together without saying anything about either stopping.
+
+\msubsection{1.4}{Programming}
+Running is plainly computing: a term goes in, a normal form comes out.
+\begin{definition}{1.11}[definitions]
+  A \textit{definition} is an equation \[f \, x_1 \dots x_n := M, \] where:
+  \begin{itemize}
+    \item $f$ is a new name;
+    \item $x_1, \dots, x_n$ are distinct variables;
+    \item $M$ is a term built from constants, names defined earlier, and the variables $x_1, \dots, x_n$ alone.
+  \end{itemize}
+  Once defined, the name $f$ may be used as a term, and it steps by the rule
+  \begin{prooftree}
+    \AxiomC{}
+    \RightLabel{\scriptsize def}
+    \UnaryInfC{$((\cdots((f \, P_1) \, P_2) \cdots) \, P_n) \;\leadsto\; M
+      \text{ with } P_i \text{ for each } x_i$}
+  \end{prooftree}
+  alongside the rules of Definition 1.2.
+
+  The rule (def) says that wherever $f$ stands with $n$ arguments, it may be replaced by the right-hand side, with the
+  arguments written in for the parameters; with (app\textsubscript{1}) and (app\textsubscript{2}), this can happen
+  anywhere in a term. The \textsf{I} above is now official with definition $\cS \, \cK \, \cK$ and no parameters, and
+  three more are useful:
+  \begin{align*}
+    \mathit{twice} \, f \, x     &\coloneqq f \, (f \, x), \\
+    \mathit{comp} \, f \, g \, x &\coloneqq f \, (g \, x), \\
+    \mathit{flip} \, f \, x \, y &\coloneqq f \, y \, x.
+  \end{align*}
+\end{definition}
+
+\begin{theorem}{1.16}[two constants suffice]
+  Every definition by equations can be replaced by a combinator in $\cK$ and $\cS$ alone that runs the same way on every
+  argument.
+\end{theorem}
+
+\begin{theorem}{1.19}[Turing completeness]
+  The functions on numerals that combinators in $\cK$ and $\cS$ compute are
+  exactly the functions that a Turing machine computes.
+
+  Recursion is the one thing the definition seems to lack. No name may occur in its own definition, but a function may
+  be applied to itself, and that is enough. Define
+  \[\mathit{self} \, f \, x \coloneq f \, (x \, x) \qquad \text{and} \qquad \mathsf{Y} \, f \coloneq \mathit{self} \, f
+  \, (\mathit{self}\, f),\]neither of which mentions itself, and run \textsf{Y} on any $f$:
+  \[
+    \begin{array}{r@{\;}l@{\qquad}l}
+      \mathsf{Y} \, f & \leadsto \mathit{self} \, f \, (\mathit{self} \, f)
+        & \mathsf{Y} \\
+                      & \leadsto f \, (\mathit{self} \, f \, (\mathit{self} \, f))
+        & \text{$\mathit{self}$, with $\mathit{self} \, f$ for $x$.}
+    \end{array}
+  \]
+  Write $\Theta$ for $\mathit{self} \, f (\mathit{self} \, f)$. The second line says that $\Theta \leadsto f \, \Theta$:
+  $\Theta$ hands $f$ a copy of itself, and that copy, when it is run, hands $f$ another, as many times as the run asks
+  for. A function that is to call itself takes the copy as an extra first parameter, and \textsf{Y} supplies it.
+\end{theorem}
+
+We've taken a lot away from our idea of a program. What's left:
+\begin{itemize}
+  \item A program is a finite list of definitions and a term to evaluate.
+  \item A definition is an equation.
+  \item To run the term is to replace, over and over, a left-hand side by its right-hand side, until no replacement is
+  left to make.
+  \item We have no store, no stack, no instruction pointer. The order of steps cannot change the answer, although it may
+  change whether we get one at all.
+\end{itemize}
+
 \end{document}
