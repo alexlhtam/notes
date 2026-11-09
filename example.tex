@@ -5,9 +5,10 @@
 \usepackage{array}
 \usepackage{bussproofs}
 \usepackage{booktabs}
+\usepackage{tikz}
 
 \theoremstyle{definition}
-
+ 
 % Manually numbered theorem-like environments, so numbers can match the
 % lecturer's master documents. Usage:
 %   \begin{definition}{2.3}            ...  \end{definition}  -> Definition 2.3.
@@ -18,10 +19,14 @@
 \newtheorem{manualthm}{\manualthmname}
 \renewcommand{\themanualthm}{\manualthmnum}
 \newcommand{\newmanualtheorem}[2]{%
-  \NewDocumentEnvironment{#1}{m o}
+  \NewDocumentEnvironment{#1}{m O{}}
     {\renewcommand{\manualthmname}{#2}%
      \renewcommand{\manualthmnum}{##1}%
-     \IfValueTF{##2}{\begin{manualthm}[##2]}{\begin{manualthm}}}
+     \if\relax\detokenize{##2}\relax
+       \begin{manualthm}% no title (or empty [])
+     \else
+       \begin{manualthm}[##2]%
+     \fi}
     {\end{manualthm}}%
 }
 \newmanualtheorem{definition}{Definition}
@@ -30,24 +35,40 @@
 \newmanualtheorem{lemma}{Lemma}
 \newmanualtheorem{prop}{Proposition}
 \newmanualtheorem{corollary}{Corollary}
+ 
+% Manually numbered headings, so numbers can match the lecturer's master documents. Usage:
+%   \msection{1}{Combinator Calculus}
+%   \msubsection{1.1}{Combinator Algebra}
+% \label works right after the heading, and \ref prints the number you typed.
+\newcommand{\msection}[2]{%
+  \renewcommand{\thesection}{#1}%
+  \refstepcounter{section}%
+  \section*{#1\quad #2}%
+  \addcontentsline{toc}{section}{\protect\numberline{#1}#2}}
+\newcommand{\msubsection}[2]{%
+  \renewcommand{\thesubsection}{#1}%
+  \refstepcounter{subsection}%
+  \subsection*{#1\quad #2}%
+  \addcontentsline{toc}{subsection}{\protect\numberline{#1}#2}}
 
 % change spacing
 \let\olditemize\itemize
 \renewcommand{\itemize}{\olditemize\setlength{\itemsep}{0pt}\setlength{\parsep}{0pt}}
 \let\oldenumerate\enumerate
 \renewcommand{\enumerate}{\oldenumerate\setlength{\itemsep}{0pt}\setlength{\parsep}{0pt}}
-
+ 
 % hilbert proofs
 \newcounter{dline}
 \newenvironment{deduction}[1][\textit{no hypotheses}]
-    {\setcounter{dline}{0}%
-     \[\begin{array}{r|l@{\qquad}l}
-     & #1 \\ \cline{2-2}}
-    {\end{array}\]}
+  {\setcounter{dline}{0}%
+    \[\begin{array}{r|l@{\qquad}l}
+    & #1 \\ \cline{2-2}}
+  {\end{array}\]}
 \newcommand{\dl}[2]{\stepcounter{dline}\thedline & #1 & \text{#2} \\}
 
+
 \begin{document}
-\section{Hello}
+
 
 \begin{definition}{2.3}[Well-formed formula]\label{def:wff}
 A test definition.
