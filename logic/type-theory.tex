@@ -340,4 +340,19 @@ what $\omega$ does, and \textsf{Y I} runs forever.
   A typing whose last line is $M:A$ \textbf{witnesses} $\Gamma \vdash_{\text{KS}} M:A$.
 \end{definition}
 
+\msubsection{1.7}{Subject Reduction}
+
+\begin{definition}{1.29}[subject reduction]
+  If $\Gamma \vdash_{\text{KS}} M:A$ and $M \vdash N$ by a $\cK$ step, an $\cS$ step or a ready-made step, then
+  $\Gamma \vdash_{\text{KS}} N : A$. (check course notes for proof)
+\end{definition}
+
+\begin{definition}{1.30}[normalisation]
+  If $\Gamma \vdash_{\text{KS}} M : A$, then $M$ has a normal form.
+  
+  This bans the Monster and all its kin. $\Omega$ has no normal form, so it has \textbf{no typing}; nor has any term
+  with $\Omega$ inside it. However, some programs that do stop are refused too: $\cK \, x \, \Omega$ has a normal form
+  and no typing.
+\end{definition}
+
 \end{document}
