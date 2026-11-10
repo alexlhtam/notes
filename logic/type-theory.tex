@@ -283,4 +283,61 @@ It is the function that applies its argument to itself. Now, apply $\omega$ to i
 This is the Monster: a legal construction, the loop of \textsf{Y} with nothing inside it. \textit{self} \textsf{I} does
 what $\omega$ does, and \textsf{Y I} runs forever.
 
+\msubsection{1.6}{Types}
+\begin{definition}{1.21}[types]
+  Fix a stock of \textit{basic types}, such as \textit{Int}, \textit{String} and \textit{Bool}; write $p$, $q$, $r$, for
+  them. The types are then inductively defined:
+  \begin{enumerate}
+    \item Every basic type $p$ is a type.
+    \item If $A$ and $B$ are types, $A \to B$ is a type: the \textit{function type}, the type of functions that take an
+    $A$ and return a $B$.
+    \item Nothing else is a type.
+  \end{enumerate}
+
+  In one line, \[A, B : p \, | \, (A \to B)\]
+
+  Read $A \to B$ as a contract. So, $\textit{Int} \to \textit{Bool}$ is the type of a test on integers, $(\textit{Int}
+  \to \textit{Int}) \to \textit{Int}$ is the type of something that takes a function, and $(p \to q) \to p$ is a type
+  too, whatever the basic types of $p$ and $q$.
+
+  Note that unlike terms which are grouped to the left, for types we group to the \textit{right}.
+\end{definition}
+
+\begin{definition}{1.22}[context and judgement]
+  A \textit{context} $\Gamma$ is a finite list pairing each variable in scope with a type, none listed twice:
+  \[\Gamma = x_1 : A_1, \dots, x_n : A_n\]
+\end{definition}
+
+\begin{definition}{1.23}[judgement]
+  A \textit{judgement} is a claim
+  \[\Gamma \vdash_{\text{KS}} M : A,\]
+  read ``$M$ has a type $A$ when its variables hae the types $\Gamma$ gives them''. When $\Gamma$ is empty, it is
+  written $\vdash_{\text{KS}} M : A$.
+\end{definition}
+
+\begin{definition}{1.24}[typing]
+  The two constants have the type schemas
+  \begin{align}
+    &(K) \qquad \cK : A \to B \to A \\
+    &(S) \qquad \cS: (A \to B \to C) \to (A \to B) \to A \to C
+  \end{align}
+  where $A$, $B$ and $C$ stand for arbitrary types: each line is a \textit{schema}, and gives one type for each choice of
+  letters.
+
+  Let $\Gamma$ be a context, $M$ a term and $A$ a type. A \textit{typing} of $\Gamma \vdash_{\text{KS}} M : A$ is a
+  finite sequence of judgements
+  \[M_1: A_1, M_2:A_2, \dots, M_n : A_n\]
+  whose last judgement $M_n:A_n$ is $M:A$, and in which each judgement $M_k : A_k$, read ``$M_k$ has type $A_k$ in
+  context $\Gamma$'', is justified in one of four ways:
+  \begin{enumerate}
+    \item (K) $M_k$ is $\cK$, and $A_k$ is an instance of (1.1);
+    \item (S) $M_k$ is $\cS$, and $A_k$ is an instance of (1.2);
+    \item (\textit{var}) $M_k$ is variable $x$ (or a ready-made constant), and $x:A_k$ is declared in
+    $\Gamma$;
+    \item (\textit{app}) there are two earlier judgements $M_i : A_i$ and $M_j:A_j$, with $i, j < k$, such that $A_i$
+    is the type $A_j \to A_k$ and $M_k$ is the term $M_i \, M_j$.
+  \end{enumerate}
+  A typing whose last line is $M:A$ \textbf{witnesses} $\Gamma \vdash_{\text{KS}} M:A$.
+\end{definition}
+
 \end{document}
