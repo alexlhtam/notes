@@ -274,4 +274,13 @@ We've taken a lot away from our idea of a program. What's left:
   change whether we get one at all.
 \end{itemize}
 
+\msubsection{1.5}{The Monster}
+Confluence promises that a term has at most one normal form, but does not promise that there is a guaranteed one.
+Nothing in Definition 1.1 says what may be applied to what, so a function can be applied to itself. Consider definition
+\[\omega x \coloneq x \, x\]
+It is the function that applies its argument to itself. Now, apply $\omega$ to itself,
+\[\omega\omega \leadsto \omega \omega \leadsto \omega \omega \leadsto \dots\]
+This is the Monster: a legal construction, the loop of \textsf{Y} with nothing inside it. \textit{self} \textsf{I} does
+what $\omega$ does, and \textsf{Y I} runs forever.
+
 \end{document}
