@@ -89,7 +89,7 @@
   \end{enumerate}
   A term without any variables is a \textit{combinator}.
 
-  In one line, with $M$ and $N$ standing for terms already built, \[M,N ::= \cK \, | \, \cS \, | \, x \, | \, (M \, N)\]
+  In one line, with $M$ and $N$ standing for terms already built, \[M,N \Coloneq \cK \, | \, \cS \, | \, x \, | \, (M \, N)\]
 
   Writing out every bracket gets tiresome, so we adopt the convention where \textbf{application groups to the left}.
   Thus, $\cK \, x \, y$ means $((\cK \, x) y)$ and we only write brackets when the grouping is \textit{not} to the left:
@@ -212,7 +212,7 @@ together without saying anything about either stopping.
 \msubsection{1.4}{Programming}
 Running is plainly computing: a term goes in, a normal form comes out.
 \begin{definition}{1.11}[definitions]
-  A \textit{definition} is an equation \[f \, x_1 \dots x_n := M, \] where:
+  A \textit{definition} is an equation \[f \, x_1 \dots x_n \coloneqq M, \] where:
   \begin{itemize}
     \item $f$ is a new name;
     \item $x_1, \dots, x_n$ are distinct variables;
@@ -280,7 +280,7 @@ Nothing in Definition 1.1 says what may be applied to what, so a function can be
 \[\omega x \coloneq x \, x\]
 It is the function that applies its argument to itself. Now, apply $\omega$ to itself,
 \[\omega\omega \leadsto \omega \omega \leadsto \omega \omega \leadsto \dots\]
-This is the Monster: a legal construction, the loop of \textsf{Y} with nothing inside it. \textit{self} \textsf{I} does
+This is the Monster: a legal construction, the loop of \textsf{Y} with nothing inside it. $\mathit{self}$ \textsf{I} does
 what $\omega$ does, and \textsf{Y I} runs forever.
 
 \msubsection{1.6}{Types}
@@ -294,7 +294,7 @@ what $\omega$ does, and \textsf{Y I} runs forever.
     \item Nothing else is a type.
   \end{enumerate}
 
-  In one line, \[A, B : p \, | \, (A \to B)\]
+  In one line, \[A, B \Coloneqq p \, | \, (A \to B)\]
 
   Read $A \to B$ as a contract. So, $\textit{Int} \to \textit{Bool}$ is the type of a test on integers, $(\textit{Int}
   \to \textit{Int}) \to \textit{Int}$ is the type of something that takes a function, and $(p \to q) \to p$ is a type
@@ -311,7 +311,7 @@ what $\omega$ does, and \textsf{Y I} runs forever.
 \begin{definition}{1.23}[judgement]
   A \textit{judgement} is a claim
   \[\Gamma \vdash_{\text{KS}} M : A,\]
-  read ``$M$ has a type $A$ when its variables hae the types $\Gamma$ gives them''. When $\Gamma$ is empty, it is
+  read ``$M$ has a type $A$ when its variables have the types $\Gamma$ gives them''. When $\Gamma$ is empty, it is
   written $\vdash_{\text{KS}} M : A$.
 \end{definition}
 
@@ -343,7 +343,7 @@ what $\omega$ does, and \textsf{Y I} runs forever.
 \msubsection{1.7}{Subject Reduction}
 
 \begin{definition}{1.29}[subject reduction]
-  If $\Gamma \vdash_{\text{KS}} M:A$ and $M \vdash N$ by a $\cK$ step, an $\cS$ step or a ready-made step, then
+  If $\Gamma \vdash_{\text{KS}} M:A$ and $M \leadsto N$ by a $\cK$ step, an $\cS$ step or a ready-made step, then
   $\Gamma \vdash_{\text{KS}} N : A$. (check course notes for proof)
 \end{definition}
 
@@ -354,5 +354,88 @@ what $\omega$ does, and \textsf{Y I} runs forever.
   with $\Omega$ inside it. However, some programs that do stop are refused too: $\cK \, x \, \Omega$ has a normal form
   and no typing.
 \end{definition}
+
+\newpage
+\msection{2}{Hilbert Proofs}
+
+\msubsection{2.1}{Formulas, Axioms and Proofs}
+
+\begin{definition}{2.1}[formulas] Fix a stock of \textit{propositional variables} $p, q, r, \dots$, called
+  \textit{letters} for short. The \textit{formulas} are defined inductively:
+  \begin{enumerate}
+    \item every letter is a formula;
+    \item if $\varphi$ and $\psi$ are formulas, so is $\varphi \to \psi$;
+    \item nothing else is a formula.
+  \end{enumerate}
+  In one line, \[\varphi, \psi \Coloneq p \, | \, \varphi \to \psi\]
+  with the arrow grouping to the right, so that $\varphi \to \psi \to \chi$ is $\varphi \to (\psi \to \chi)$.
+\end{definition}
+
+\begin{definition}{2.3}[axioms]
+  The \textit{axioms} are all instances of the two schemas
+  \begin{align*}
+    &(\text{I}) \qquad \varphi \to \psi \to \varphi \\
+    &(\text{II}) \qquad (\varphi \to \psi \to \chi) \to (\varphi \to \psi) \to \varphi \to \chi
+  \end{align*}
+  where $\varphi, \psi$ and $\chi$ stand for arbitrary formulas.
+\end{definition}
+
+\begin{definition}{2.4}[proof from hypotheses]
+  Let $\Gamma$ be a set of formulas, the \textit{hypotheses}. A \textit{proof of $\varphi$ from $\Gamma$} is a finite
+  sequence of formulas \[\varphi_1, \varphi_2, \dots, \varphi_n\]
+  whose last formula $\varphi_n$ is $\varphi$, and in which each formula $\varphi_k$ is justified in one of three ways:
+  \begin{enumerate}
+    \item (\textit{axiom}) $\varphi_k$ is an axiom;
+    \item (\textit{hypothesis}) $\varphi_k$ is a member of $\Gamma$;
+    \item (\textit{modus ponens}) there are two earlier formulas $\varphi_i$ and $\varphi_j$, with $i, j < k$, such that
+    $\varphi_i$ is the formula $\varphi_j \to \varphi_k$.
+  \end{enumerate}
+\end{definition}
+
+\begin{definition}{2.5}[provability; theorem]
+  Let $\Gamma$ be a set of formulas and $\varphi$ a formula. If there is a proof of $\varphi$ from $\Gamma$, we write 
+  $\Gamma \vdash_\text{HJ} \varphi$ and say that the proof \textit{witnesses} $\Gamma \vdash_\text{HJ} \varphi$. A
+  formula $\varphi$ with $\emptyset \vdash_{\text{HJ}} \varphi$, written $\vdash_{\text{HJ}} \varphi$, is a
+  \textit{theorem}.
+
+  Set a proof out as a box, with hypotheses $\Gamma$ above the line and the formulas below it, one to a numbered line,
+  each with its justification on the right:
+
+  \begin{deduction}[\Gamma]
+    \dl{\varphi_1}{reason}
+    \dl{\varphi_2}{reason}
+  \end{deduction}
+\end{definition}
+
+\begin{lemma}{2.7}[identity]
+  For every formula $\varphi$, $\vdash_\text{HJ} \, \varphi \to \varphi$. \\
+  \textit{Proof}. The following proof, from no hypotheses, witnesses the claim for a propositional letter $p$. The
+  square brackets give the formulas put for the schema's Greek letters, in the order $\varphi, \psi, \chi$.
+  \begin{deduction}[\textit{no hypotheses}]
+    \dl{(p \to (p \to p) \to p) \to (p \to (p \to p)) \to p \to p}{(II) $[p, p\to p, p]$}
+    \dl{p \to (p \to p) \to p}{(I) $[p, p \to p]$}
+    \dl{(p \to (p \to p)) \to p \to p}{MP 1, 2}
+    \dl{p \to (p \to p)}{(I) $[p, p]$}
+    \dl{p \to p}{MP 3, 4}
+  \end{deduction}
+  
+  Lines 1, 2, 4 are matched against the two shapes, lines 3, 5 against the two lines they cite. Nothing in the five
+  lines depends on $p$, so same lines with $\varphi$ in place of $p$ prove $\varphi \to \varphi$ for every formula
+  $\varphi$. $\square$
+
+  It turns out that \textbf{the thinking runs backwards from the goal}.
+  \begin{enumerate}
+    \item The goal $p \to p$ is not an axiom, so it comes by modus ponens: from some $\chi$ and $\chi \to (p \to p)$.
+    \item Could $\chi \to (p \to p)$ be an instance of (I)? Then $\chi$ would be $p$, and we would need a proof of $p$
+    on its own. There cannot be one, nothing in the system proves a lone letter.
+    \item So try (II): Its last part, $\varphi \to \chi$, must be $p \to p$. That fixes $\varphi = \chi = p$ and leaves
+    $\psi$ free.
+    \item The two premises are then $p \to (\psi \to p)$ and $p \to \psi$. Choose $\psi \coloneq p \to p$, and both
+    premises are instances of (I).
+  \end{enumerate}
+\end{lemma}
+
+
+
 
 \end{document}
