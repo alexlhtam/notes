@@ -490,4 +490,44 @@ what $\omega$ does, and \textsf{Y I} runs forever.
   That is it for (1), for (2), run the same four cases upwards.
 \end{theorem}
 
+\msubsection{2.4}{More Connectives: and, or, not}
+
+\begin{definition}{2.15}[formulas, extended].
+  Fix a stock of letters $p, q, r, \dots,$ as before. The \textit{formulas} are defined inductively:
+  \begin{enumerate}
+    \item every letter is a formula;
+    \item $\bot$ is a formula, read ``absurd'';
+    \item if $\varphi, \psi$ are formulas, so is $\varphi \to \psi$;
+    \item if $\varphi, \psi$ are formulas, so is $\varphi \land \psi$;
+    \item if $\varphi, \psi$ are formulas, so is $\varphi \lor \psi$;
+    \item nothing else is a formula.
+  \end{enumerate}
+  In one line, \[\varphi, \psi \Coloneq p \, | \, \bot \, | \, \varphi \to \psi \, | \, 
+  \varphi \land \psi \, | \, \varphi \lor \psi\] 
+\end{definition}
+
+\begin{definition}{2.17}[axioms, extended]
+  From here on, the \textit{axioms} are all instances of the nine schemas
+  \begin{align*}
+    &(\text{I}) \qquad \varphi \to \psi \to \varphi \\
+    &(\text{II}) \qquad (\varphi \to \psi \to \chi) \to (\varphi \to \psi) \to
+  \varphi \to \chi \\
+    &(\text{pair}) \qquad \varphi \to \psi \to \varphi \land \psi \\
+    &(\text{fst}) \qquad \varphi \land \psi \to \varphi \\
+    &(\text{snd}) \qquad \varphi \land \psi \to \psi \\
+    &(\text{left}) \qquad \varphi \to \varphi \lor \psi \\
+    &(\text{right}) \qquad \psi \to \varphi \lor \psi \\
+    &(\text{either}) \qquad (\varphi \to \chi) \to (\psi \to \chi) \to \varphi \lor \psi \to \chi \\
+    &(\text{absurd}) \qquad \bot \to \varphi
+  \end{align*}
+  where $\varphi, \psi$ and $\chi$ stand for arbitrary formulas. A proof of $\varphi$ from $\Gamma$ is a box, as before,
+  in which each line is
+  \begin{enumerate}
+    \item (axiom) an instance of one of the nine schemas;
+    \item (hypothesis) a member of $\Gamma$;
+    \item (modus ponens) the $\varphi_k$ of earlier lines $\varphi_j \to \varphi_k$ and $\varphi_j$.
+  \end{enumerate}
+  Every proof of the earlier sections is still a proof, and the proof theory of \S 2.2 still holds.
+\end{definition}
+
 \end{document}
