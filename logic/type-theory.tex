@@ -435,7 +435,36 @@ what $\omega$ does, and \textsf{Y I} runs forever.
   \end{enumerate}
 \end{lemma}
 
+\msubsection{2.2}{The Deduction Theorem}
 
+\begin{prop}{2.9}[stuctural facts]
+  For all sets of formulas $\Gamma, \Delta$ and all formulas $\varphi, \psi$: 
+  \begin{enumerate}
+    \item (reflexivity) if $\varphi \in \Gamma$ then $\Gamma \vdash_\text{HJ} \varphi$;
+    \item (monotonicity) if $\Gamma \subseteq \Delta$ and $\Gamma \vdash_\text{HJ} \varphi$ then $\Delta \vdash_\text{HJ
+    } \varphi$;
+    \item (transitivity) if $\Gamma \vdash_\text{HJ} \varphi$ and $\Delta \cup \{ \varphi \} \vdash_\text{HJ} \psi$
+    then $\Gamma \cup \Delta \vdash_\text{HJ} \psi$.
+  \end{enumerate}
 
+  \textit{Proof}. In each case the job is to exhibit a proof of the required kind, built from the proofs
+  we are given; nothing is said about what the formulas mean.
+  \begin{enumerate}
+    \item The one-line sequence $\varphi$ is a proof of $\varphi$ from $\Gamma$: its only line is justified
+    as a hypothesis, because $\varphi$ is a member of $\Gamma$.
+    \item A proof of $\varphi$ from $\Gamma$ is already a proof of $\varphi$ from $\Delta$: every line justified as a
+    member of $\Gamma$ is a member of $\Delta$ too, because $\Gamma \subseteq \Delta$, and the other two kinds of line
+    do not mention $\Gamma$.
+    \item Write out a proof of $\varphi$ from $\Gamma$, and after it the proof of $\psi$ from $\Delta \cup \{ \varphi \}
+    $ with every line justified as ``hypothesis $\varphi$'' deleted; each modus ponens that cited one of the deleted
+    lines  now cites the last line of the first proof, which is $\varphi$. Every remaining hypothesis is in $\Gamma$ or
+    in $\Delta$, so the result is a proof of $\psi$ from $\Gamma \cup \Delta$.
+  \end{enumerate}
+\end{prop}
+
+\begin{theorem}{2.12}[Deduction Theorem]
+  For every set of formulas $\Gamma$ and all formulas $\varphi$ and $\psi$,
+  \[\Gamma \cup \{ \varphi \} \vdash_\text{HJ} \psi \iff \Gamma \vdash_\text{HJ} \varphi \to \psi\]
+\end{theorem}
 
 \end{document}
