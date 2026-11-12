@@ -467,4 +467,27 @@ what $\omega$ does, and \textsf{Y I} runs forever.
   \[\Gamma \cup \{ \varphi \} \vdash_\text{HJ} \psi \iff \Gamma \vdash_\text{HJ} \varphi \to \psi\]
 \end{theorem}
 
+\msubsection{2.3}{Proofs are Programs}
+\begin{theorem}{2.13}[Curry's correspondence]
+  Let $\Gamma$ be a context and $|\Gamma |$ the set of types declared in it.
+  \begin{enumerate}
+    \item (Erasure) Replace every line of a typing of $\Gamma \vdash M:A $ by its partner in the right-hand column. The
+    result is a proof of $A$ from $|\Gamma|$.
+    \item (Decoration) Take a proof of $\varphi$ from some hypotheses, give each hypothesis a variable, and replace
+    every line by its partner in the left-hand column, working downwards. The result is a typing of $\Gamma \vdash M :
+    \varphi$ for some term $M$.
+  \end{enumerate}
+  In particular, $\Gamma \vdash_\text{KS} M : A$ for some term $M$ if and only if $|\Gamma| \vdash_\text{HJ} A$ \\
+  \textit{Proof}. All that needs checking is that each line's justification survives the change, and the table says it
+  does with the four cases below. Every line of a typing has the same context $\Gamma$ (Definition 1.22):
+  \begin{enumerate}
+    \item A line by (\textsf{K}) has type $B \to C \to B$: erased, an instance of (I).
+    \item A line by (\textsf{S}) has type $B \to C \to D \to (B \to C) \to B \to D$: erased, an instance of (II).
+    \item A line by (var) has a type listed in $\Gamma$: erased, a member of $|\Gamma|$, a hypothesis.
+    \item A line by ``(app) $i$, $j$'' has type $C$, where line $i$ has type $B \to C$ and line $j$
+    has type $B$. Erased, ``MP $i$, $j$'' is a correct justification for $C$.
+  \end{enumerate}
+  That is it for (1), for (2), run the same four cases upwards.
+\end{theorem}
+
 \end{document}
