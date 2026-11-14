@@ -6,7 +6,12 @@
 \usepackage{bussproofs}
 \usepackage{booktabs}
 \usepackage{tikz}
-\usetikzlibrary{decorations.pathmorphing, arrows.meta}
+\usetikzlibrary{decorations.pathmorphing, arrows.meta, shapes.geometric}
+\newcommand{\dtri}[1]{%
+  \begin{tikzpicture}[baseline=(n.center)]
+    \node[isosceles triangle, shape border rotate=-90, draw,
+          fill=brown!15, inner sep=0pt, isosceles triangle apex angle=70, minimum height=2.4em] (n) {#1};
+  \end{tikzpicture}}
 \usepackage{mathtools}
 
 \theoremstyle{definition}
@@ -528,6 +533,148 @@ what $\omega$ does, and \textsf{Y I} runs forever.
     \item (modus ponens) the $\varphi_k$ of earlier lines $\varphi_j \to \varphi_k$ and $\varphi_j$.
   \end{enumerate}
   Every proof of the earlier sections is still a proof, and the proof theory of \S 2.2 still holds.
+\end{definition}
+
+\newpage
+
+\msection{3}{Natural Deduction}
+
+\msubsection{3.1}{Derivations in NJ}
+
+\begin{definition}{3.1}[derivations]
+  A \textit{derivation} is a finite tree of formulas, drawn with its root at the bottom, in which some leaves are marked
+  as \textit{discharged}. Its \textit{conclusion} is the formula at its root. The derivations are defined inductively:
+  \begin{enumerate}
+    \item (hypothesis) for every formula $\varphi$, the one-node tree $\varphi$ is a derivation, with conclusion
+    $\varphi$ and its leaf not discharged;
+
+    \item ($\to I$) if $\mathcal{D}$ has conclusion $\psi$ then for every formula $\varphi$
+    \begin{center}
+      \begin{prooftree}
+        \AxiomC{$[\varphi]$}
+        \noLine
+        \UnaryInfC{\dtri{$\mathcal{D}$}}
+        \noLine
+        \UnaryInfC{$\psi$}
+        \RightLabel{\scriptsize $\to$I}
+        \UnaryInfC{$\varphi \to \psi$}
+      \end{prooftree}
+    \end{center} is a derivation.
+
+    \item ($\to E$) If $\mathcal{D}_1$ has conclusion $\varphi \to \psi$ and $\mathcal{D}_2$ has conclusion $\varphi$,
+    then
+    \begin{center}
+      \begin{prooftree}
+        \AxiomC{\dtri{$\mathcal{D}_1$}}
+        \noLine
+        \UnaryInfC{$\varphi \to \psi$}
+        \AxiomC{\dtri{$\mathcal{D}_2$}}
+        \noLine
+        \UnaryInfC{$\varphi\vphantom{\psi}$}
+        \RightLabel{\scriptsize $\to$E}
+        \BinaryInfC{$\psi$}
+      \end{prooftree}
+    \end{center} is a derivation, with $\mathsf{OH} = \mathsf{OH}(\mathcal{D}_1) \cup \mathsf{OH}(\mathcal{D}_2)$.
+
+    \item ($\land I$) If $\mathcal{D}_1$ concludes $\varphi$ and $\mathcal{D}_2$ concludes $\psi$, then
+    \begin{center}
+      \begin{prooftree}
+        \AxiomC{\dtri{$\mathcal{D}_1$}}
+        \noLine
+        \UnaryInfC{$\varphi\vphantom{\psi}$}
+        \AxiomC{\dtri{$\mathcal{D}_2$}}
+        \noLine
+        \UnaryInfC{$\psi$}
+        \RightLabel{\scriptsize $\land$I}
+        \BinaryInfC{$\varphi \land \psi$}
+      \end{prooftree}
+    \end{center} is a derivation, with $\mathsf{OH} = \mathsf{OH}(\mathcal{D}_1) \cup \mathsf{OH}(\mathcal{D}_2)$.
+
+    \item ($\land E$) If $\mathcal{D}$ concludes $\varphi \land \psi$, then
+    \begin{center}
+      \begin{minipage}[b]{0.25\linewidth}
+        \centering
+        \begin{prooftree}
+          \AxiomC{\dtri{$\mathcal{D}$}}
+          \noLine
+          \UnaryInfC{$\varphi \land \psi$}
+          \RightLabel{\scriptsize $\land$E$_1$}
+          \UnaryInfC{$\varphi\vphantom{\psi}$}
+        \end{prooftree}
+      \end{minipage}
+      \hspace{3em}
+      \begin{minipage}[b]{0.25\linewidth}
+        \centering
+        \begin{prooftree}
+          \AxiomC{\dtri{$\mathcal{D}$}}
+          \noLine
+          \UnaryInfC{$\varphi \land \psi$}
+          \RightLabel{\scriptsize $\land$E$_2$}
+          \UnaryInfC{$\psi$}
+        \end{prooftree}
+      \end{minipage}
+    \end{center} are derivations.
+
+    \item ($\lor I$) If $\mathcal{D}$ concludes $\varphi$, then for every formula $\psi$ the tree with root $\varphi 
+    \lor \psi$ and immediate subtree $\mathcal{D}$ is a derivation, labelled $\lor I_1$; symmetrically from a derivation
+    of $\psi$, labelled $\lor I_2$. In both cases, $\mathsf{OH} = \mathsf{OH}(\mathcal{D})$.
+
+    \item ($\lor E$) If $\mathcal{D}_0$ concludes $\varphi \lor \psi$, and $\mathcal{D}_1$ and $\mathcal{D}_2$ both
+    conclude $\chi$, then three trees combine into one:
+    \begin{center}
+      \begin{prooftree}
+        \AxiomC{\dtri{$\mathcal{D}_0$}}
+        \noLine
+        \UnaryInfC{$\varphi \lor \psi$}
+        \AxiomC{$[\varphi]$}
+        \noLine
+        \UnaryInfC{\dtri{$\mathcal{D}_1$}}
+        \noLine
+        \UnaryInfC{$\chi\vphantom{\psi}$}
+        \AxiomC{$[\psi]$}
+        \noLine
+        \UnaryInfC{\dtri{$\mathcal{D}_2$}}
+        \noLine
+        \UnaryInfC{$\chi\vphantom{\psi}$}
+        \RightLabel{\scriptsize $\lor$E}
+        \TrinaryInfC{$\chi$}
+      \end{prooftree}
+    \end{center}
+
+    \item ($\bot E$) If $\mathcal{D}$ concludes $\bot$, then for every formula $\chi$ the tree with root $\chi$ and
+    immediate subtree $\mathcal{D}$ is a derivation.
+
+    \item Nothing else is a derivation. (Negation is an abbreviation)
+  \end{enumerate}
+\end{definition}
+
+\begin{definition}{3.3}[open hypotheses]
+  The \textit{open hypotheses} of a derivation $\mathcal{D}$ are the formulas at its leaves that are not marked as
+  discharged. We write $\mathsf{OH}(\mathcal{D})$ for the set of them.
+
+  Since derivations are defined inductively, the same set can be computed by recursion on the last rule:
+  \[
+    \mathsf{OH}(\mathcal{D}) \coloneqq
+    \left\{
+    \begin{array}{@{}l@{\qquad}l@{}}
+      \{\varphi\} & \text{a leaf } \varphi, \\
+      \mathsf{OH}(\mathcal{D}') \setminus \{\varphi\} & (\to\text{I}), \text{ discharging } \varphi, \\
+      \mathsf{OH}(\mathcal{D}_1) \cup \mathsf{OH}(\mathcal{D}_2) & (\to\text{E}), (\land\text{I}), \\
+      \mathsf{OH}(\mathcal{D}') & (\land\text{E}), (\lor\text{I}), (\bot\text{E}), \\
+      \mathsf{OH}(\mathcal{D}_0) \cup (\mathsf{OH}(\mathcal{D}_1) \setminus \{\varphi\}) & (\lor\text{E}), \text{ discharging } \varphi, \psi, \\
+      \qquad \cup\, (\mathsf{OH}(\mathcal{D}_2) \setminus \{\psi\}) &
+    \end{array}
+    \right.
+  \] where $\mathcal{D}'$ is the one sub-derivation of a one-premise rule, $\mathcal{D}_1$, $\mathcal{D}_2$ the two of
+  a two-premise rule, and $\mathcal{D}_0$, $\mathcal{D}_1$, $\mathcal{D}_2$ those of ($\lor E$), left to right. Only two
+  lines take something away: the ($\to I$) and ($\lor E$), for the two rules that discharge.
+\end{definition}
+
+\begin{definition}{3.4}[consequence]
+  We write $\Gamma \vdash_\text{NJ} \varphi$, and say that $\varphi$ is derivable from $\Gamma$ in NJ, or an 
+  NJ-consequence of $\Gamma$, when there is a derivation $\mathcal{D}$ whose conclusion is $\varphi$ and whose open
+  hypotheses are among $\Gamma$, $\mathsf{OH}(\mathcal{D}) \subseteq \Gamma$. Such a derivation \textit{witnesses}
+  $\Gamma \vdash_\text{NJ} \varphi$.
 \end{definition}
 
 \end{document}
