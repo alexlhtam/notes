@@ -853,5 +853,25 @@ what $\omega$ does, and \textsf{Y I} runs forever.
   If $\Gamma \vdash_\lambda M : A$ and $M \leadsto N$, then $\Gamma \vdash_\lambda N : A$ \\
   Proof in course notes.
 \end{theorem}
-  
+
+\msubsection{3.6}{Normalisation}
+\begin{theorem}{3.33}[normalisation]
+  Every typed term runs to a normal form. \\
+  Proof in course notes.
+\end{theorem}
+
+\begin{corollary}{3.35}[normal derivations]
+  Every derivation can be rewritten, by removing maximal formulas, into a normal derivation of the same formula whose
+  open hypotheses are among those of the original.
+\end{corollary}
+
+\begin{theorem}{3.38}[consistency]
+  There is no closed term of type $\bot : \, \not \vdash_\text{NJ} \bot$. More generally, for every letter $p$,
+  $\not \vdash_\text{NJ} p$
+\end{theorem}
+
+\begin{corollary}{3.39}[disjunction property]
+  If $\vdash_\text{NJ} A \lor B$, then $\vdash_\text{NJ} A$ or $\vdash_\text{NJ} B$.
+\end{corollary}
+
 \end{document}:waiting
