@@ -796,4 +796,62 @@ what $\omega$ does, and \textsf{Y I} runs forever.
   the straightened proof on the right.
 \end{definition}
 
+\msubsection{3.5}{The Simply Typed $\lambda$-Calculus}
+
+\begin{definition}{3.21}[maximal formula]
+  A \textit{maximal formula} in a derivation is an occurrence of a formula that is the conclusion of an introduction
+  rule and, at once, the major premise of an elimination rule. A derivation with no maximal formula is \textit{normal}.
+\end{definition}
+
+\begin{definition}{3.22}[normal and neutral terms]
+  The neutral and the normal terms are defined together. A term is \textit{neutral} if it is one of:
+  \begin{itemize}
+    \item a variable;
+    \item a destructor whose major part is neutral and whose other parts are normal
+  \end{itemize}
+  A term is \textit{normal} if it is one of:
+  \begin{itemize}
+    \item a constructor whose parts are normal;
+    \item a neutral term.
+  \end{itemize}
+
+  A neutral term is a chain of destructors hanging off a variable, it head, since nothing in the chain binds it.
+\end{definition}
+
+\begin{lemma}{3.23}[normal terms]
+  Normal terms are the terms of normal derivations:
+  \begin{enumerate}
+    \item a term is normal exactly when no destructor in it has a constructor as its major part;
+    \item a derivation is normal exactly when the typed term it folds up to is normal.
+  \end{enumerate}
+\end{lemma}
+
+\begin{definition}{3.24}[free variables, all connectives]
+  On the full calculus, $\mathsf{FV}(M)$ is defined by recursion on the shape of $M$:
+  \[
+    \mathsf{FV}(M) \coloneqq
+    \left\{
+    \begin{array}{@{}l@{\qquad}l@{}}
+      \{x\} & \text{if } M \text{ is a variable } x, \\
+      \mathsf{FV}(M_1) \cup \mathsf{FV}(M_2) & \text{if } M \text{ is } M_1\, M_2 \text{ or } (M_1, M_2), \\
+      \mathsf{FV}(M_1) \setminus \{x\} & \text{if } M \text{ is } \lambda x.\, M_1, \\
+      \mathsf{FV}(M_1) & \text{if } M \text{ is } F\, M_1,
+    \end{array}
+    \right.
+  \]
+  and, for a \textbf{case},
+  \begin{align*}
+    &\mathsf{FV}(\mathbf{case}\ M_0\ \mathbf{of}\ \{\mathit{Left}\ y \Rightarrow M_1 \mid \mathit{Right}\ z \Rightarrow M_2\}) \\
+    &\qquad \coloneqq \mathsf{FV}(M_0) \cup (\mathsf{FV}(M_1) \setminus \{y\}) \cup (\mathsf{FV}(M_2) \setminus \{z\}).
+  \end{align*}
+  
+  The new lines pass through the parts, and the \textbf{case} line removes each branch's variable from that branch, as
+  the $\lambda$ line removes the parameter from the body.
+\end{definition}
+
+\begin{theorem}{3.29}[subject reduction]
+  If $\Gamma \vdash_\lambda M : A$ and $M \leadsto N$, then $\Gamma \vdash_\lambda N : A$ \\
+  Proof in course notes.
+\end{theorem}
+  
 \end{document}:waiting
