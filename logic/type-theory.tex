@@ -720,6 +720,80 @@ what $\omega$ does, and \textsf{Y I} runs forever.
   More information in course notes.
 \end{theorem}
 
+\msubsection{3.4}{Removing Detours}
 
+\begin{definition}{3.17}[free variables]
+  The set $\mathsf{FV}(M)$ of \textit{free variables} of a term $M$ is defined by recursion on the shape of $M$:
+  \[
+    \mathsf{FV}(M) \coloneqq
+    \left\{
+    \begin{array}{@{}l@{\qquad}l@{}}
+      \{x\} & \text{if } M \text{ is a variable } x, \\
+      \mathsf{FV}(M_1) \cup \mathsf{FV}(M_2) & \text{if } M \text{ is } M_1\, M_2, \\
+      \mathsf{FV}(M_1) \setminus \{x\} & \text{if } M \text{ is } \lambda x.\, M_1.
+    \end{array}
+    \right.
+  \]
+  A term with no free variables is \textit{closed}.
+\end{definition}
 
-\end{document}
+\begin{definition}{3.18}[substitution]
+  $M[N/x]$, ``$M$ with $N$ for $x$'': the free occurrences of $x$ in $M$ replaced by $N$, and nothing else.
+  \[
+    M[N/x] \coloneqq
+    \left\{
+    \begin{array}{@{}l@{\qquad}l@{}}
+      N & \text{if } M \text{ is } x, \\
+      y & \text{if } M \text{ is a variable } y \neq x, \\
+      M_1[N/x]\, M_2[N/x] & \text{if } M \text{ is } M_1\, M_2, \\
+      \lambda x.\, M_1 & \text{if } M \text{ is } \lambda x.\, M_1, \\
+      \lambda y.\, M_1[N/x] & \text{if } M \text{ is } \lambda y.\, M_1,\ y \neq x, \text{ provided } y \notin \mathsf{FV}(N).
+    \end{array}
+    \right.
+  \]
+\end{definition}
+
+\begin{definition}{3.19}[$\beta$-reduction]
+  The one-step relation $M \leadsto N$, ``$M$ deduces to $N$'', is given by the rule
+  \begin{center}
+    \begin{prooftree}
+      \AxiomC{}
+      \RightLabel{\scriptsize $\beta$}
+      \UnaryInfC{$(\lambda x.\, P)\, Q \;\leadsto\; P[Q/x]$}
+    \end{prooftree}
+  \end{center}
+  together with a rule for each place a subterm can sit, which says that a step taken inside a term is a step of the
+  term:
+  \begin{center}
+    \begin{minipage}[b]{0.3\linewidth}
+      \centering
+      \begin{prooftree}
+        \AxiomC{$P \leadsto P'$}
+        \RightLabel{\scriptsize $\text{app}_1$}
+        \UnaryInfC{$P\, Q \;\leadsto\; P'\, Q$}
+      \end{prooftree}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[b]{0.3\linewidth}
+      \centering
+      \begin{prooftree}
+        \AxiomC{$Q \leadsto Q'$}
+        \RightLabel{\scriptsize $\text{app}_2$}
+        \UnaryInfC{$P\, Q \;\leadsto\; P\, Q'$}
+      \end{prooftree}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[b]{0.3\linewidth}
+      \centering
+      \begin{prooftree}
+        \AxiomC{$P \leadsto P'$}
+        \RightLabel{\scriptsize $\text{abs}$}
+        \UnaryInfC{$\lambda x.\, P \;\leadsto\; \lambda x.\, P'$}
+      \end{prooftree}
+    \end{minipage}
+  \end{center}
+  The first rule is the step, called $\beta$; $(\lambda x. \, P)Q$ is the redex: the term of a detour, with the term of
+  the straightened proof on the right.
+\end{definition}
+
+\end{document}:waiting
