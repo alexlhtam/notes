@@ -677,4 +677,40 @@ what $\omega$ does, and \textsf{Y I} runs forever.
   $\Gamma \vdash_\text{NJ} \varphi$.
 \end{definition}
 
+\msubsection{3.2}{Equivalence with the Hilbert System}
+
+\begin{prop}{3.12}[derived rules]
+  For all sets of formulas $\Gamma$ and all formulas $\varphi, \psi, \chi$, in the Hilbert system:
+  \begin{enumerate}
+    \item if $\varphi \in \Gamma$ then $\Gamma \vdash_{\text{HJ}} \varphi$; \hfill (reflexivity)
+    \item if $\Gamma \vdash_{\text{HJ}} \varphi \to \psi$ and $\Gamma \vdash_{\text{HJ}} \varphi$ then $\Gamma 
+    \vdash_{\text{HJ}} \psi$; \hfill (modus ponens)
+    \item if $\Gamma, \varphi \vdash_{\text{HJ}} \psi$ then $\Gamma \vdash_{\text{HJ}} \varphi \to \psi$; \hfill 
+    (the Deduction Theorem)
+    \item if $\Gamma \vdash_{\text{HJ}} \varphi$ and $\Gamma \vdash_{\text{HJ}} \psi$ then $\Gamma \vdash_{\text{HJ}} 
+    \varphi \land \psi$; \hfill (pair)
+    \item if $\Gamma \vdash_{\text{HJ}} \varphi \land \psi$ then $\Gamma \vdash_{\text{HJ}} \varphi$; \hfill (fst)
+    \item if $\Gamma \vdash_{\text{HJ}} \varphi \land \psi$ then $\Gamma \vdash_{\text{HJ}} \psi$; \hfill (snd)
+    \item if $\Gamma \vdash_{\text{HJ}} \varphi$ then $\Gamma \vdash_{\text{HJ}} \varphi \lor \psi$; \hfill (left)
+    \item if $\Gamma \vdash_{\text{HJ}} \psi$ then $\Gamma \vdash_{\text{HJ}} \varphi \lor \psi$; \hfill (right)
+    \item if $\Gamma \vdash_{\text{HJ}} \varphi \lor \psi$, and $\Gamma, \varphi \vdash_{\text{HJ}} \chi$, and $\Gamma,
+    \psi \vdash_{\text{HJ}} \chi$, then $\Gamma \vdash_{\text{HJ}} \chi$; \hfill (either)
+    \item if $\Gamma \vdash_{\text{HJ}} \bot$ then $\Gamma \vdash_{\text{HJ}} \varphi$; \hfill (absurd)
+    \item if $\Gamma \vdash_{\text{HJ}} \varphi$ then $\Gamma \vdash_{\text{HJ}} \psi \to \varphi$; \hfill (I)
+    \item[] if $\Gamma \vdash_{\text{HJ}} \varphi \to \psi \to \chi$ and $\Gamma \vdash_{\text{HJ}} \varphi \to \psi$
+    then $\Gamma \vdash_{\text{HJ}} \varphi \to \chi$. \hfill (II)
+  \end{enumerate}
+\end{prop}
+
+\begin{lemma}{3.13}[the axioms as trees]
+  Every instance of each of the nine schemas of HJ has a derivation in NJ with no open hypotheses.
+\end{lemma}
+
+\begin{theorem}{3.14}[equivalence with the Hilbert system]
+  For every set of formulas $\Gamma$ and every formula $\varphi$ built from letters and $\bot$ with $\to$, $\land$ and
+  $\lor$, \[\Gamma \vdash_\text{NJ} \varphi \qquad \text{if and only if} \qquad \Gamma \vdash_\text{HJ} \varphi\]
+  
+  In words: the two systems, natural deduction and the Hilbert system, prove the same things from the same hypotheses.
+\end{theorem}
+
 \end{document}
