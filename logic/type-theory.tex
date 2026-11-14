@@ -874,4 +874,45 @@ what $\omega$ does, and \textsf{Y I} runs forever.
   If $\vdash_\text{NJ} A \lor B$, then $\vdash_\text{NJ} A$ or $\vdash_\text{NJ} B$.
 \end{corollary}
 
-\end{document}:waiting
+\msubsection{3.7}{Programs as Proofs}
+
+\begin{definition}{3.44}[trasnlation into combinators]
+  Every term $M$ built form variables by application and $\lambda$ translates to a term $M^\circ$ built from $\cK$,
+  $\cS$ and variables by application, with no $\lambda$ in it, such that:
+  \begin{enumerate}
+    \item $M^\circ$ has the same free variables as $M$ and does the same thing to every argument: if $M$ is $\lambda x.
+    \, P$ then $M^\circ \, N \leadsto^* P^\circ[N/x]$ for every $N$;
+    \item $M^\circ$ has the types $M$ has: if $\Gamma \vdash_\lambda M:A$ then $\lambda \vdash_\text{KS} M^\circ:A$
+  \end{enumerate}
+  Conversely every combinator term is a $\lambda$-term, by the definitions of $\cK$ and $\cS$ above, with the same
+  types.
+\end{definition}
+
+\msubsection{3.8}{Dropping the Types}
+
+\begin{definition}{3.46}[$\lambda$-terms]
+  Fix a stock of variables $x, y, z, f, \dots$. The terms are defined inductively:
+  \begin{itemize}
+    \item every variable $x$ is a term;
+    \item if $M$ and $N$ are terms then $M \, N$ is a term, the \textit{application} of $M$ to $N$;
+    \item if $x$ is a variable and $M$ is a term then $\lambda x. \, M$ is a term, the \textit{abstraction} of $M$ over
+    $N$ over $x$, the function that takes $x$ and returns $M$;
+    \item if $M, N, P$ and $Q$ are terms and $x$ and $y$ are variables, then $(M, N)$, $\mathit{fst} \,M$, $\mathit{snd}
+    \, M$, $\mathit{Left} \, M$, $\mathit{Right} \, M$, $\mathit{absurd} \, M$ and $\mathbf{case} \, M \, \mathbf{of} \,
+    \{\textit{Left} \, x \to P \, | \, \textit{Right} \, y \to Q \}$ are terms, the forms of the other connectives;
+    \item nothing else is a term.
+  \end{itemize}
+  In short,
+  \begin{align*}
+    M, N, P, Q \Coloneqq{} & x \mid M\, N \mid \lambda x.\, M \\
+    & \mid (M, N) \mid \mathit{fst}\, M \mid \mathit{snd}\, M \mid \mathit{Left}\, M \mid \mathit{Right}\, M \mid \mathit{absurd}\, M \\
+    & \mid \mathbf{case}\ M\ \mathbf{of}\ \{\mathit{Left}\, x \Rightarrow P \mid \mathit{Right}\, y \Rightarrow Q\}.
+  \end{align*}
+\end{definition}
+
+\begin{theorem}{3.47}[Turing completeness]
+  Every function a Turing machine computes is closed by a closed $\lambda$-term, and every function a closed $lambda$-
+  term computes is computed by a Turing machine.
+\end{theorem}
+
+\end{document}
